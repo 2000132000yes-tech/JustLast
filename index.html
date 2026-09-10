@@ -28,103 +28,111 @@
             overflow: hidden;
         }
 
-        /* 낡은 나무 장판 바닥의 어두운 방 */
+        /* 원래 넓은 정사각형 방 크기 유지 */
         #room {
-            width: 240px;
-            height: 240px;
+            width: 320px;
+            height: 320px;
             background-color: #2b1d0c;
-            /* 은은하고 자연스러운 나무 결 패턴 */
             background-image: repeating-linear-gradient(
                 0deg,
                 rgba(0, 0, 0, 0.15),
-                rgba(0, 0, 0, 0.15) 12px,
-                rgba(0, 0, 0, 0.25) 12px,
-                rgba(0, 0, 0, 0.25) 24px
+                rgba(0, 0, 0, 0.15) 16px,
+                rgba(0, 0, 0, 0.25) 16px,
+                rgba(0, 0, 0, 0.25) 32px
             );
-            border: 3px solid #1a1007;
-            border-radius: 16px;
+            border: 4px solid #1a1007;
+            border-radius: 20px;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 0 15px rgba(0,0,0,0.9);
+            box-shadow: 0 0 20px rgba(0,0,0,0.9);
         }
 
-        /* 연한 갈색의 축소된 문 */
+        /* 연한 갈색 문 */
         .door {
             position: absolute;
             background-color: #b08d57;
             border: 1px solid #7a5e37;
         }
 
-        .door-top { top: 0; left: 50%; transform: translateX(-50%); width: 36px; height: 6px; border-top: none; border-radius: 0 0 3px 3px; }
-        .door-bottom { bottom: 0; left: 50%; transform: translateX(-50%); width: 36px; height: 6px; border-bottom: none; border-radius: 3px 3px 0 0; }
-        .door-left { top: 50%; left: 0; transform: translateY(-50%); width: 6px; height: 36px; border-left: none; border-radius: 0 3px 3px 0; }
-        .door-right { top: 50%; right: 0; transform: translateY(-50%); width: 6px; height: 36px; border-right: none; border-radius: 3px 0 0 3px; }
+        .door-top { top: 0; left: 50%; transform: translateX(-50%); width: 44px; height: 8px; border-top: none; border-radius: 0 0 4px 4px; }
+        .door-bottom { bottom: 0; left: 50%; transform: translateX(-50%); width: 44px; height: 8px; border-bottom: none; border-radius: 4px 4px 0 0; }
+        .door-left { top: 50%; left: 0; transform: translateY(-50%); width: 8px; height: 44px; border-left: none; border-radius: 0 4px 4px 0; }
+        .door-right { top: 50%; right: 0; transform: translateY(-50%); width: 8px; height: 44px; border-right: none; border-radius: 4px 0 0 4px; }
 
-        /* 소형 플레이어 */
+        /* 캐릭터 (더 작아짐, 14px) */
         #player {
-            width: 18px;
-            height: 18px;
+            width: 14px;
+            height: 14px;
             background-color: #6366f1;
             border: 1px solid #818cf8;
-            border-radius: 5px;
+            border-radius: 4px;
             position: absolute;
-            top: 111px;
-            left: 111px;
-            box-shadow: 0 0 6px rgba(99, 102, 241, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
+            top: 153px;
+            left: 153px;
+            box-shadow: 0 0 5px rgba(99, 102, 241, 0.6);
+            /* 회전 중심축 설정 */
+            transform-origin: center center;
         }
 
-        /* 단검 회전 앵커 */
+        /* 시선 방향을 나타내는 눈점 */
+        #player::after {
+            content: '';
+            position: absolute;
+            right: 2px;
+            top: 3px;
+            width: 3px;
+            height: 3px;
+            background-color: #ffffff;
+            border-radius: 50%;
+        }
+
+        /* 단검 피벗 (회전축) */
         #dagger-pivot {
             position: absolute;
-            right: -10px;
             top: 50%;
-            width: 0px;
-            height: 0px;
-            transform-origin: 0% 0%;
-            transform: rotate(0deg);
+            left: 50%;
+            width: 0;
+            height: 0;
+            transform-origin: 0 0;
         }
 
-        /* 단검 모델링 */
+        /* 자연스럽게 쥔 단검 */
         .dagger {
             position: absolute;
             top: -2px;
-            left: 0;
-            width: 10px;
-            height: 3px;
+            left: 4px;
+            width: 9px;
+            height: 2px;
             background-color: #e2e8f0;
             border-radius: 0 2px 2px 0;
-            box-shadow: 0 0 2px rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 3px rgba(255, 255, 255, 0.9);
         }
 
-        /* 손잡이 */
+        /* 단검 가드 및 자루 */
         .dagger::before {
             content: '';
             position: absolute;
-            left: -4px;
+            left: -2px;
             top: -1px;
-            width: 4px;
-            height: 5px;
+            width: 2px;
+            height: 4px;
             background-color: #475569;
-            border-radius: 1px;
         }
 
-        /* 단검 휘두르기 애니메이션 클래스 */
+        /* 휘두르기 애니메이션 */
         .slash {
             animation: slash-anim 0.15s ease-out;
         }
 
         @keyframes slash-anim {
-            0% { transform: rotate(-45deg); }
-            50% { transform: rotate(90deg); }
+            0% { transform: rotate(-50deg); }
+            50% { transform: rotate(70deg); }
             100% { transform: rotate(0deg); }
         }
 
-        /* 컨트롤러 영역 */
+        /* 방 외부 컨트롤러 영역 */
         #controls-container {
-            width: 240px;
+            width: 320px;
             height: 100px;
             margin-top: 20px;
             position: relative;
@@ -133,7 +141,7 @@
             align-items: center;
         }
 
-        /* 소형 조이스틱 */
+        /* 소형 조이스틱 & 버튼 */
         #joystick-base {
             width: 80px;
             height: 80px;
@@ -154,7 +162,6 @@
             position: absolute;
         }
 
-        /* 소형 공격 버튼 */
         #attack-btn {
             width: 60px;
             height: 60px;
@@ -175,7 +182,6 @@
 </head>
 <body>
 
-    <!-- 방 & 플레이어 -->
     <div id="room">
         <div class="door door-top"></div>
         <div class="door door-bottom"></div>
@@ -189,7 +195,6 @@
         </div>
     </div>
 
-    <!-- 외부 컨트롤러 -->
     <div id="controls-container">
         <div id="joystick-base">
             <div id="joystick-stick"></div>
@@ -205,14 +210,15 @@
         const stick = document.getElementById('joystick-stick');
         const attackBtn = document.getElementById('attack-btn');
 
-        let playerX = 111;
-        let playerY = 111;
+        let playerX = 153;
+        let playerY = 153;
         let moveX = 0;
         let moveY = 0;
+        let playerAngle = 0; // 바라보는 각도 (도 단위)
 
         let joystickPointerId = null;
 
-        // --- 조이스틱 로직 (독립적 입력 처리) ---
+        // 조이스틱 조작
         base.addEventListener('pointerdown', (e) => {
             e.preventDefault();
             joystickPointerId = e.pointerId;
@@ -258,31 +264,38 @@
 
             moveX = deltaX / maxRadius;
             moveY = deltaY / maxRadius;
+
+            // 이동 방향 각도 계산 (조이스틱을 당긴 방향으로 회전)
+            if (Math.abs(moveX) > 0.1 || Math.abs(moveY) > 0.1) {
+                playerAngle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
+            }
         }
 
-        // --- 공격 버튼 로직 (조이스틱과 독립적 작동) ---
+        // 공격 동작
         attackBtn.addEventListener('pointerdown', (e) => {
             e.preventDefault();
             e.stopPropagation();
             
-            // 단검 휘두르기 애니메이션 트리거
             daggerPivot.classList.remove('slash');
-            void daggerPivot.offsetWidth; // Reflow 발생으로 애니메이션 리셋
+            void daggerPivot.offsetWidth;
             daggerPivot.classList.add('slash');
         });
 
-        // --- 루프 (이동 업데이트) ---
+        // 메인 프레임 루프
         function gameLoop() {
-            const speed = 2.5;
+            const speed = 2.2;
             playerX += moveX * speed;
             playerY += moveY * speed;
 
-            // 방 영역 제한 (240px - 플레이어 18px)
-            playerX = Math.max(3, Math.min(219, playerX));
-            playerY = Math.max(3, Math.min(219, playerY));
+            // 방 영역 내 이동 제한 (방 크기 320px - 캐릭터 14px)
+            playerX = Math.max(4, Math.min(302, playerX));
+            playerY = Math.max(4, Math.min(302, playerY));
 
             player.style.left = playerX + 'px';
             player.style.top = playerY + 'px';
+            
+            // 바라보는 방향으로 캐릭터 회전 적용
+            player.style.transform = `rotate(${playerAngle}deg)`;
 
             requestAnimationFrame(gameLoop);
         }
