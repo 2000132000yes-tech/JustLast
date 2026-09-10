@@ -1,1 +1,148 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Square Game</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
 
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+
+        /* 정사각형 화면 */
+        #game-screen {
+            width: 400px;
+            height: 400px;
+            background-color: #ffffff;
+            border: 3px solid #000000;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 조이스틱 영역 (좌측 하단) */
+        #joystick-base {
+            width: 100px;
+            height: 100px;
+            background-color: rgba(0, 0, 0, 0.1);
+            border: 2px solid #333333;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #joystick-stick {
+            width: 40px;
+            height: 40px;
+            background-color: #333333;
+            border-radius: 50%;
+            position: absolute;
+        }
+
+        /* 공격 버튼 (우측 하단) */
+        #attack-btn {
+            width: 80px;
+            height: 80px;
+            background-color: #ff4d4d;
+            color: #ffffff;
+            border: 2px solid #b30000;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            outline: none;
+        }
+
+        #attack-btn:active {
+            background-color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 정사각형 화면 -->
+    <div id="game-screen">
+        <!-- 조이스틱 -->
+        <div id="joystick-base">
+            <div id="joystick-stick"></div>
+        </div>
+
+        <!-- 공격 버튼 -->
+        <button id="attack-btn">공격</button>
+    </div>
+
+    <script>
+        const base = document.getElementById('joystick-base');
+        const stick = document.getElementById('joystick-stick');
+        const attackBtn = document.getElementById('attack-btn');
+
+        let joystickPointerId = null;
+
+        // --- 조이스틱 로직 (Pointer Events로 동시 터치 지원) ---
+        base.addEventListener('pointerdown', (e) => {
+            joystickPointerId = e.pointerId;
+            base.setPointerCapture(e.pointerId);
+            updateJoystick(e);
+        });
+
+        base.addEventListener('pointermove', (e) => {
+            if (e.pointerId === joystickPointerId) {
+                updateJoystick(e);
+            }
+        });
+
+        const resetJoystick = (e) => {
+            if (e.pointerId === joystickPointerId) {
+                joystickPointerId = null;
+                stick.style.transform = 'translate(0px, 0px)';
+            }
+        };
+
+        base.addEventListener('pointerup', resetJoystick);
+        base.addEventListener('pointercancel', resetJoystick);
+
+        function updateJoystick(e) {
+            const rect = base.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            let deltaX = e.clientX - centerX;
+            let deltaY = e.clientY - centerY;
+
+            const maxRadius = rect.width / 2;
+            const distance = Math.hypot(deltaX, deltaY);
+
+            if (distance > maxRadius) {
+                deltaX = (deltaX / distance) * maxRadius;
+                deltaY = (deltaY / distance) * maxRadius;
+            }
+
+            stick.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+        }
+
+        // --- 공격 버튼 로직 ---
+        attackBtn.addEventListener('pointerdown', (e) => {
+            // 멀티터치를 지원하기 위해 조이스틱과 독립적으로 작동합니다.
+        });
+    </script>
+</body>
+</html>
