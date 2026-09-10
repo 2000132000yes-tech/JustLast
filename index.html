@@ -3,246 +3,221 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>The Binding of Isaac - Full Web Engine</title>
+    <title>Square Isaac Rogue - Sword & Neon</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; user-select: none; }
-        body { background: #121212; color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
-        #gameContainer { position: relative; width: 800px; height: 500px; background: #2b2625; border: 8px solid #4a3b32; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); overflow: hidden; }
-        canvas { display: block; width: 100%; height: 100%; border-radius: 16px; }
+        body { background: #050508; color: #fff; font-family: 'Segoe UI', Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
         
-        /* HUD Style */
-        #hud { position: absolute; top: 12px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: center; pointer-events: none; z-index: 10; }
-        .hud-group { display: flex; gap: 12px; background: rgba(0,0,0,0.6); padding: 8px 16px; border-radius: 20px; backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.1); }
-        .hud-item { display: flex; align-items: center; gap: 6px; font-weight: bold; font-size: 16px; }
+        /* 600x600 정사각형 게임 컨테이너 */
+        #gameContainer { 
+            position: relative; 
+            width: 600px; 
+            height: 600px; 
+            background: #0d0d12; 
+            border: 4px solid #1f1f2e; 
+            border-radius: 20px; 
+            box-shadow: 0 0 35px rgba(0, 255, 200, 0.15); 
+            overflow: hidden; 
+        }
+        canvas { display: block; width: 100%; height: 100%; border-radius: 16px; }
 
-        /* Minimap */
-        #minimap { position: absolute; top: 12px; right: 16px; width: 90px; height: 90px; background: rgba(0,0,0,0.6); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(5, 1fr); gap: 2px; padding: 4px; }
-        .map-cell { background: rgba(255,255,255,0.05); border-radius: 3px; }
-        .map-cell.visited { background: #555; }
-        .map-cell.current { background: #fff; box-shadow: 0 0 6px #fff; }
-        .map-cell.item { background: #ffd700; }
-        .map-cell.boss { background: #ff4444; }
-        .map-cell.shop { background: #4169e1; }
+        /* UI overlay (Top) */
+        #hud { 
+            position: absolute; 
+            top: 15px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 6px; 
+            pointer-events: none; 
+            z-index: 10; 
+        }
 
-        /* Mobile Controls */
-        #controls { display: flex; justify-content: space-between; width: 800px; max-width: 100%; padding: 16px 24px; margin-top: 10px; }
-        .touch-zone { width: 110px; height: 110px; background: rgba(255,255,255,0.08); border: 2px dashed rgba(255,255,255,0.2); border-radius: 50%; position: relative; }
-        .knob { width: 44px; height: 44px; background: rgba(255,255,255,0.4); border-radius: 50%; position: absolute; top: 33px; left: 33px; pointer-events: none; transition: transform 0.05s ease-out; }
+        /* 체력바 */
+        .hp-bar-bg { width: 220px; height: 16px; background: rgba(20, 20, 30, 0.8); border: 2px solid #ff3366; border-radius: 10px; overflow: hidden; box-shadow: 0 0 10px rgba(ff, 51, 102, 0.4); }
+        .hp-bar-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ff0055, #ff5500); transition: width 0.15s ease-out; }
+
+        /* 코인 / 열쇠 아이콘 */
+        .status-row { display: flex; gap: 20px; font-weight: bold; font-size: 15px; text-shadow: 0 0 8px rgba(255,255,255,0.6); }
+        .status-item { display: flex; align-items: center; gap: 4px; background: rgba(0,0,0,0.6); padding: 3px 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
+
+        /* 조이스틱 및 버튼 조작계 */
+        #controls { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            width: 600px; 
+            max-width: 100%; 
+            padding: 15px 20px; 
+        }
+        .touch-zone { width: 100px; height: 100px; background: rgba(255,255,255,0.05); border: 2px dashed rgba(255,255,255,0.2); border-radius: 50%; position: relative; }
+        .knob { width: 40px; height: 40px; background: rgba(0, 255, 200, 0.5); border-radius: 50%; position: absolute; top: 28px; left: 28px; pointer-events: none; box-shadow: 0 0 12px #00ffc8; }
+        
+        .btn-group { display: flex; gap: 12px; }
+        .action-btn { width: 65px; height: 65px; border-radius: 50%; border: none; font-weight: bold; font-size: 14px; color: #fff; cursor: pointer; box-shadow: 0 0 15px rgba(0,0,0,0.5); }
+        .btn-attack { background: linear-gradient(135deg, #00ffc8, #0088ff); box-shadow: 0 0 15px rgba(0, 255, 200, 0.4); }
+        .btn-bomb { background: linear-gradient(135deg, #ff0055, #ff5500); box-shadow: 0 0 15px rgba(255, 0, 85, 0.4); }
     </style>
 </head>
 <body>
 
 <div id="gameContainer">
     <div id="hud">
-        <div class="hud-group">
-            <div class="hud-item" id="hpDisplay">❤❤❤</div>
-            <div class="hud-item">🪙 <span id="coinCount">0</span></div>
-            <div class="hud-item">💣 <span id="bombCount">1</span></div>
-            <div class="hud-item">🔑 <span id="keyCount">1</span></div>
-        </div>
-        <div class="hud-group">
-            <div class="hud-item">FLOOR <span id="floorCount">1</span></div>
+        <div class="hp-bar-bg"><div id="hpFill" class="hp-bar-fill"></div></div>
+        <div class="status-row">
+            <div class="status-item">🪙 <span id="coinText">000</span></div>
+            <div class="status-item">🔑 <span id="keyText">000</span></div>
         </div>
     </div>
-    <canvas id="gameCanvas" width="800" height="500"></canvas>
+    <canvas id="gameCanvas" width="600" height="600"></canvas>
 </div>
 
 <div id="controls">
     <div id="moveZone" class="touch-zone"><div id="moveKnob" class="knob"></div></div>
-    <div id="shootZone" class="touch-zone"><div id="shootKnob" class="knob"></div></div>
+    <div class="btn-group">
+        <button id="bombBtn" class="action-btn btn-bomb">BOMB</button>
+        <button id="attackBtn" class="action-btn btn-attack">ATTACK</button>
+    </div>
 </div>
 
 <script>
-/**
- * ISAAC FULL ENGINE SYSTEM - SINGLE FILE
- */
-
-// --- 1. CONSTANTS & ENUMS ---
-const ROOM_TYPES = { NORMAL: 'normal', START: 'start', ITEM: 'item', SHOP: 'shop', BOSS: 'boss' };
-const ITEM_TYPES = {
-    SAD_ONION: { name: "Sad Onion", fireRate: -80, speed: 0, dmg: 0, color: "#4CAF50" },
-    INNER_EYE: { name: "Inner Eye (Triple)", fireRate: 100, triple: true, color: "#9C27B0" },
-    MAGIC_MUSHROOM: { name: "Magic Mushroom", fireRate: -20, speed: 1, dmg: 2, color: "#F44336" },
-    SPOON_BENDER: { name: "Spoon Bender", homing: true, color: "#3F51B5" }
-};
-
-// --- 2. GAME STATE ---
-const state = {
-    floor: 1,
-    coins: 0,
-    bombs: 1,
-    keys: 1,
-    player: {
-        x: 400, y: 250, r: 16,
-        hp: 6, maxHp: 6,
-        speed: 3.8,
-        dmg: 3.5,
-        fireRate: 350, // ms
-        lastShot: 0,
-        range: 450,
-        shotSpeed: 7,
-        triple: false,
-        homing: false,
-        invulnerable: 0
-    },
-    grid: {},
-    currentRoomPos: { x: 2, y: 2 },
-    tears: [],
-    enemies: [],
-    drops: [],
-    pedestalItems: [],
-    trapdoors: [],
-    keysPressed: {},
-    moveDir: { x: 0, y: 0 },
-    shootDir: { x: 0, y: 0 }
-};
-
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// --- 3. DUNGEON GENERATOR ---
-function generateFloor() {
-    state.grid = {};
-    const size = 5;
-    const startPos = { x: 2, y: 2 };
-    state.currentRoomPos = { ...startPos };
+// --- GAME STATE ---
+const state = {
+    coins: 0,
+    keys: 0,
+    player: {
+        x: 300, y: 300, r: 10, // 캐릭터 축소
+        hp: 100, maxHp: 100,
+        speed: 3.2,
+        angle: 0,
+        invulnerable: 0,
+        isAttacking: false,
+        attackAngle: 0,
+        attackProgress: 0
+    },
+    currentRoom: { x: 0, y: 0 },
+    visitedRooms: {},
+    enemies: [],
+    bombs: [],
+    particles: [],
+    keysPressed: {},
+    moveDir: { x: 0, y: 0 }
+};
 
-    // Layout initialization
-    const roomsToCreate = [
-        { type: ROOM_TYPES.START, pos: startPos },
-        { type: ROOM_TYPES.NORMAL, pos: { x: 2, y: 1 } },
-        { type: ROOM_TYPES.NORMAL, pos: { x: 2, y: 3 } },
-        { type: ROOM_TYPES.NORMAL, pos: { x: 1, y: 2 } },
-        { type: ROOM_TYPES.ITEM, pos: { x: 3, y: 2 } },
-        { type: ROOM_TYPES.SHOP, pos: { x: 2, y: 0 } },
-        { type: ROOM_TYPES.BOSS, pos: { x: 2, y: 4 } }
-    ];
-
-    roomsToCreate.forEach(r => {
-        const key = `${r.pos.x},${r.pos.y}`;
-        state.grid[key] = {
-            pos: r.pos,
-            type: r.type,
-            visited: r.type === ROOM_TYPES.START,
-            cleared: r.type === ROOM_TYPES.START || r.type === ROOM_TYPES.ITEM || r.type === ROOM_TYPES.SHOP,
-            enemies: [],
-            drops: [],
-            pedestalItems: [],
-            doors: { N: false, S: false, E: false, W: false }
-        };
-    });
-
-    // Calculate Door Connections
-    Object.keys(state.grid).forEach(key => {
-        const r = state.grid[key];
-        r.doors.N = !!state.grid[`${r.pos.x},${r.pos.y - 1}`];
-        r.doors.S = !!state.grid[`${r.pos.x},${r.pos.y + 1}`];
-        r.doors.E = !!state.grid[`${r.pos.x + 1},${r.pos.y}`];
-        r.doors.W = !!state.grid[`${r.pos.x - 1},${r.pos.y}`];
-
-        // Populate Room Mechanics
-        if (r.type === ROOM_TYPES.ITEM && !r.cleared) {
-            r.pedestalItems.push({ x: 400, y: 250, item: ITEM_TYPES.SAD_ONION, price: 0 });
-        } else if (r.type === ROOM_TYPES.SHOP) {
-            r.pedestalItems.push({ x: 300, y: 250, item: ITEM_TYPES.MAGIC_MUSHROOM, price: 15 });
-            r.pedestalItems.push({ x: 500, y: 250, item: ITEM_TYPES.SPOON_BENDER, price: 15 });
-        }
-    });
-
-    loadRoom(state.currentRoomPos);
+// --- MAP GENERATOR (5 VARIANTS) ---
+function getRoomData(rx, ry) {
+    const key = `${rx},${ry}`;
+    if (!state.visitedRooms[key]) {
+        const variant = Math.floor(Math.abs(Math.sin(rx * 12.9898 + ry * 78.233)) * 5); // Random layout 0~4
+        state.visitedRooms[key] = { variant, cleared: false };
+    }
+    return state.visitedRooms[key];
 }
 
-function loadRoom(pos) {
-    const key = `${pos.x},${pos.y}`;
-    const room = state.grid[key];
-    room.visited = true;
-
-    state.tears = [];
-    state.drops = room.drops;
-    state.pedestalItems = room.pedestalItems;
-    state.trapdoors = [];
-
-    // Spawn Enemies if not cleared
-    if (!room.cleared) {
-        if (room.type === ROOM_TYPES.NORMAL) {
-            for (let i = 0; i < 3 + state.floor; i++) {
-                room.enemies.push(createFly(100 + Math.random() * 600, 100 + Math.random() * 300));
-            }
-        } else if (room.type === ROOM_TYPES.BOSS) {
-            room.enemies.push(createMonstro(400, 200));
+function loadRoom(rx, ry) {
+    state.currentRoom = { x: rx, y: ry };
+    const roomData = getRoomData(rx, ry);
+    
+    // Spawn Enemies
+    state.enemies = [];
+    if (!roomData.cleared) {
+        const count = 3 + (Math.abs(rx) + Math.abs(ry)) % 4;
+        for (let i = 0; i < count; i++) {
+            const isFly = Math.random() > 0.4;
+            state.enemies.push({
+                x: 100 + Math.random() * 400,
+                y: 100 + Math.random() * 400,
+                r: isFly ? 8 : 11,
+                hp: isFly ? 15 : 30,
+                maxHp: isFly ? 15 : 30,
+                speed: isFly ? 1.8 : 1.2,
+                type: isFly ? 'fly' : 'chaser'
+            });
         }
     }
-    state.enemies = room.enemies;
 }
 
-// --- 4. ENTITY FACTORIES ---
-function createFly(x, y) {
-    return { type: 'fly', x, y, r: 12, hp: 8, maxHp: 8, speed: 2, color: '#654321' };
-}
-
-function createMonstro(x, y) {
-    return { type: 'boss', name: 'Monstro', x, y, r: 35, hp: 120, maxHp: 120, speed: 1.2, color: '#a0522d', timer: 0, state: 'idle' };
-}
-
-function spawnDrop(x, y) {
-    const rand = Math.random();
-    let type = 'coin';
-    if (rand < 0.4) type = 'coin';
-    else if (rand < 0.7) type = 'heart';
-    else if (rand < 0.85) type = 'bomb';
-    else type = 'key';
-
-    state.drops.push({ x, y, r: 10, type });
-}
-
-// --- 5. INPUT HANDLING ---
-window.addEventListener("keydown", e => state.keysPressed[e.key.toLowerCase()] = true);
+// --- INPUTS & TOUCH JOYSTICK ---
+window.addEventListener("keydown", e => {
+    state.keysPressed[e.key.toLowerCase()] = true;
+    if (e.key === " " || e.key.toLowerCase() === "j") triggerAttack();
+    if (e.key === "Shift" || e.key.toLowerCase() === "e") plantBomb();
+});
 window.addEventListener("keyup", e => state.keysPressed[e.key.toLowerCase()] = false);
 
-function setupJoystick(zoneId, knobId, callback) {
-    const zone = document.getElementById(zoneId);
-    const knob = document.getElementById(knobId);
+function setupJoystick() {
+    const zone = document.getElementById("moveZone");
+    const knob = document.getElementById("moveKnob");
     let touchId = null, base = { x: 0, y: 0 };
 
     zone.addEventListener("touchstart", e => {
         const t = e.changedTouches[0];
         touchId = t.identifier;
         const rect = zone.getBoundingClientRect();
-        base = { x: rect.left + rect.width/2, y: rect.top + rect.height/2 };
-        move(t);
+        base = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        update(t);
     });
 
     zone.addEventListener("touchmove", e => {
-        for (let t of e.changedTouches) if (t.identifier === touchId) move(t);
+        for (let t of e.changedTouches) if (t.identifier === touchId) update(t);
     });
 
-    const end = e => {
+    const reset = e => {
         for (let t of e.changedTouches) if (t.identifier === touchId) {
             touchId = null;
             knob.style.transform = `translate(0px, 0px)`;
-            callback({ x: 0, y: 0 });
+            state.moveDir = { x: 0, y: 0 };
         }
     };
-    zone.addEventListener("touchend", end);
-    zone.addEventListener("touchcancel", end);
+    zone.addEventListener("touchend", reset);
+    zone.addEventListener("touchcancel", reset);
 
-    function move(t) {
+    function update(t) {
         let dx = t.clientX - base.x, dy = t.clientY - base.y;
-        let dist = Math.hypot(dx, dy), max = 35;
-        if (dist > max) { dx = (dx/dist)*max; dy = (dy/dist)*max; }
+        let dist = Math.hypot(dx, dy), max = 30;
+        if (dist > max) { dx = (dx / dist) * max; dy = (dy / dist) * max; }
         knob.style.transform = `translate(${dx}px, ${dy}px)`;
-        callback({ x: dx/max, y: dy/max });
+        state.moveDir = { x: dx / max, y: dy / max };
+    }
+}
+setupJoystick();
+
+document.getElementById("attackBtn").addEventListener("click", triggerAttack);
+document.getElementById("bombBtn").addEventListener("click", plantBomb);
+
+// --- COMBAT ACTIONS ---
+function triggerAttack() {
+    if (state.player.isAttacking) return;
+    state.player.isAttacking = true;
+    state.player.attackProgress = 0;
+    
+    // 공격 방향 설정
+    if (state.moveDir.x !== 0 || state.moveDir.y !== 0) {
+        state.player.attackAngle = Math.atan2(state.moveDir.y, state.moveDir.x);
+    } else {
+        state.player.attackAngle = state.player.angle;
     }
 }
 
-setupJoystick("moveZone", "moveKnob", dir => state.moveDir = dir);
-setupJoystick("shootZone", "shootKnob", dir => state.shootDir = dir);
+function plantBomb() {
+    state.bombs.push({
+        x: state.player.x,
+        y: state.player.y,
+        timer: 90, // 1.5 seconds
+        r: 8
+    });
+}
 
-// --- 6. GAME LOOP & ENGINE UPDATES ---
+// --- UPDATE LOOP ---
 function update() {
     const p = state.player;
 
-    // 1. Player Movement & Input
+    // 1. Movement
     let mx = state.moveDir.x, my = state.moveDir.y;
     if (state.keysPressed['a']) mx = -1; if (state.keysPressed['d']) mx = 1;
     if (state.keysPressed['w']) my = -1; if (state.keysPressed['s']) my = 1;
@@ -251,293 +226,220 @@ function update() {
     if (len > 0) {
         p.x += (mx / (len > 1 ? len : 1)) * p.speed;
         p.y += (my / (len > 1 ? len : 1)) * p.speed;
+        p.angle = Math.atan2(my, mx);
     }
 
-    // Room Bounds
-    p.x = Math.max(50, Math.min(canvas.width - 50, p.x));
-    p.y = Math.max(50, Math.min(canvas.height - 50, p.y));
+    // 2. Room Collision & Door Transitions (무한 방 이동)
+    const doorSize = 36;
+    // North Door
+    if (p.y <= 25 && Math.abs(p.x - 300) < doorSize/2) { loadRoom(state.currentRoom.x, state.currentRoom.y - 1); p.y = 560; }
+    // South Door
+    else if (p.y >= 575 && Math.abs(p.x - 300) < doorSize/2) { loadRoom(state.currentRoom.x, state.currentRoom.y + 1); p.y = 40; }
+    // West Door
+    else if (p.x <= 25 && Math.abs(p.y - 300) < doorSize/2) { loadRoom(state.currentRoom.x - 1, state.currentRoom.y); p.x = 560; }
+    // East Door
+    else if (p.x >= 575 && Math.abs(p.y - 300) < doorSize/2) { loadRoom(state.currentRoom.x + 1, state.currentRoom.y); p.x = 40; }
 
-    // Room Transition Doors Trigger
-    const roomKey = `${state.currentRoomPos.x},${state.currentRoomPos.y}`;
-    const room = state.grid[roomKey];
+    // Clamp inside Walls
+    p.x = Math.max(25, Math.min(575, p.x));
+    p.y = Math.max(25, Math.min(575, p.y));
 
-    if (room.enemies.length === 0) {
-        if (!room.cleared) {
-            room.cleared = true;
-            if (room.type === ROOM_TYPES.BOSS) {
-                state.trapdoors.push({ x: 400, y: 250, r: 20 });
-            }
-        }
-
-        if (p.y <= 52 && room.doors.N) changeRoom(0, -1, 400, 430);
-        if (p.y >= 448 && room.doors.S) changeRoom(0, 1, 400, 70);
-        if (p.x >= 748 && room.doors.E) changeRoom(1, 0, 70, 250);
-        if (p.x <= 52 && room.doors.W) changeRoom(-1, 0, 730, 250);
-    }
-
-    // 2. Shooting Mechanic
-    let sx = state.shootDir.x, sy = state.shootDir.y;
-    if (state.keysPressed['arrowleft']) sx = -1; if (state.keysPressed['arrowright']) sx = 1;
-    if (state.keysPressed['arrowup']) sy = -1; if (state.keysPressed['arrowdown']) sy = 1;
-
-    const now = Date.now();
-    if ((sx !== 0 || sy !== 0) && now - p.lastShot > p.fireRate) {
-        const slen = Math.hypot(sx, sy);
-        const dirX = sx / slen, dirY = sy / slen;
-
-        if (p.triple) {
-            [-0.2, 0, 0.2].forEach(angle => {
-                const cos = Math.cos(angle), sin = Math.sin(angle);
-                const rx = dirX * cos - dirY * sin;
-                const ry = dirX * sin + dirY * cos;
-                fireTear(p.x, p.y, rx * p.shotSpeed, ry * p.shotSpeed);
-            });
-        } else {
-            fireTear(p.x, p.y, dirX * p.shotSpeed, dirY * p.shotSpeed);
-        }
-        p.lastShot = now;
-    }
-
-    // 3. Tears Update & Collision
-    state.tears.forEach(t => {
-        if (p.homing && state.enemies.length > 0) {
-            let target = state.enemies[0];
-            let dx = target.x - t.x, dy = target.y - t.y;
-            let dist = Math.hypot(dx, dy);
-            t.vx += (dx / dist) * 0.4;
-            t.vy += (dy / dist) * 0.4;
-        }
-
-        t.x += t.vx; t.y += t.vy;
-        t.distTraveled += Math.hypot(t.vx, t.vy);
-
-        // Enemy Hit Logic
+    // 3. Sword Swing Logic
+    if (p.isAttacking) {
+        p.attackProgress += 0.15;
+        const currentArc = p.attackAngle - Math.PI/3 + (p.attackProgress * Math.PI * 0.66);
+        
+        // 칼 히트박스 판정
         state.enemies.forEach(e => {
-            if (Math.hypot(t.x - e.x, t.y - e.y) < t.r + e.r) {
-                e.hp -= p.dmg;
-                t.dead = true;
+            const swordX = p.x + Math.cos(currentArc) * 28;
+            const swordY = p.y + Math.sin(currentArc) * 28;
+            if (Math.hypot(swordX - e.x, swordY - e.y) < e.r + 15) {
+                e.hp -= 2.5;
+                // Knockback
+                e.x += Math.cos(currentArc) * 6;
+                e.y += Math.sin(currentArc) * 6;
             }
         });
-    });
-    state.tears = state.tears.filter(t => !t.dead && t.distTraveled < p.range);
 
-    // 4. Enemy AI Update
+        if (p.attackProgress >= 1) p.isAttacking = false;
+    }
+
+    // 4. Enemy AI & Damage
     state.enemies.forEach(e => {
-        if (e.type === 'fly') {
-            let dx = p.x - e.x, dy = p.y - e.y, dist = Math.hypot(dx, dy);
+        let dx = p.x - e.x, dy = p.y - e.y;
+        let dist = Math.hypot(dx, dy);
+        if (dist > 0) {
             e.x += (dx / dist) * e.speed;
             e.y += (dy / dist) * e.speed;
-        } else if (e.type === 'boss') {
-            e.timer += 0.03;
-            e.x += Math.cos(e.timer) * e.speed;
-            if (Math.random() < 0.02) {
-                // Boss Attacks (Radial Bullet Burst)
-                for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
-                    state.tears.push({ x: e.x, y: e.y, vx: Math.cos(a)*4, vy: Math.sin(a)*4, r: 8, isEnemy: true, distTraveled: 0 });
-                }
-            }
         }
 
-        // Touch Damage to Player
-        if (Math.hypot(p.x - e.x, p.y - e.y) < p.r + e.r) damagePlayer(1);
+        if (dist < p.r + e.r && p.invulnerable <= 0) {
+            p.hp = Math.max(0, p.hp - 10);
+            p.invulnerable = 30; // 무적 시간
+            if (p.hp <= 0) {
+                alert("Game Over! 새로 시작합니다.");
+                p.hp = 100;
+                state.coins = 0; state.keys = 0;
+                loadRoom(0,0);
+            }
+        }
     });
 
-    // Handle Enemy Death
     state.enemies = state.enemies.filter(e => {
         if (e.hp <= 0) {
-            spawnDrop(e.x, e.y);
+            state.coins += Math.floor(Math.random() * 2) + 1;
             return false;
         }
         return true;
     });
 
-    // 5. Pickups & Items Interaction
-    state.drops.forEach((d, i) => {
-        if (Math.hypot(p.x - d.x, p.y - d.y) < p.r + d.r) {
-            if (d.type === 'coin') state.coins++;
-            else if (d.type === 'bomb') state.bombs++;
-            else if (d.type === 'key') state.keys++;
-            else if (d.type === 'heart' && p.hp < p.maxHp) p.hp = Math.min(p.maxHp, p.hp + 2);
-            state.drops.splice(i, 1);
-        }
-    });
-
-    state.pedestalItems.forEach((itemObj, i) => {
-        if (Math.hypot(p.x - itemObj.x, p.y - itemObj.y) < p.r + 20) {
-            if (state.coins >= itemObj.price) {
-                state.coins -= itemObj.price;
-                applyItem(itemObj.item);
-                state.pedestalItems.splice(i, 1);
+    // 5. Bomb Logic
+    state.bombs.forEach(b => {
+        b.timer--;
+        if (b.timer <= 0) {
+            // 폭발 효과 및 데미지
+            state.enemies.forEach(e => {
+                if (Math.hypot(b.x - e.x, b.y - e.y) < 90) e.hp -= 50;
+            });
+            if (Math.hypot(b.x - p.x, b.y - p.y) < 90 && p.invulnerable <= 0) {
+                p.hp -= 20; p.invulnerable = 30;
+            }
+            // 파티클 생성
+            for(let i=0; i<20; i++) {
+                state.particles.push({
+                    x: b.x, y: b.y,
+                    vx: (Math.random()-0.5)*8, vy: (Math.random()-0.5)*8,
+                    life: 20, color: "#ff5500"
+                });
             }
         }
     });
+    state.bombs = state.bombs.filter(b => b.timer > 0);
 
-    // Next Floor Trapdoor
-    state.trapdoors.forEach(td => {
-        if (Math.hypot(p.x - td.x, p.y - td.y) < p.r + td.r) {
-            state.floor++;
-            generateFloor();
-        }
-    });
+    // Particles
+    state.particles.forEach(pt => { pt.x += pt.vx; pt.y += pt.vy; pt.life--; });
+    state.particles = state.particles.filter(pt => pt.life > 0);
 
-    // Invulnerability Frame Control
     if (p.invulnerable > 0) p.invulnerable--;
+
+    // UI Update
+    document.getElementById("hpFill").style.width = `${(p.hp / p.maxHp) * 100}%`;
+    document.getElementById("coinText").innerText = String(state.coins).padStart(3, '0');
+    document.getElementById("keyText").innerText = String(state.keys).padStart(3, '0');
 }
 
-function fireTear(x, y, vx, vy) {
-    state.tears.push({ x, y, vx, vy, r: 7, isEnemy: false, distTraveled: 0 });
-}
-
-function damagePlayer(amount) {
-    const p = state.player;
-    if (p.invulnerable <= 0) {
-        p.hp -= amount;
-        p.invulnerable = 40; // ~0.6 sec invincibility
-        if (p.hp <= 0) {
-            alert(`Game Over! Survived until Floor ${state.floor}`);
-            location.reload();
-        }
-    }
-}
-
-function changeRoom(dx, dy, newX, newY) {
-    state.currentRoomPos.x += dx;
-    state.currentRoomPos.y += dy;
-    state.player.x = newX;
-    state.player.y = newY;
-    loadRoom(state.currentRoomPos);
-}
-
-function applyItem(item) {
-    const p = state.player;
-    p.fireRate = Math.max(100, p.fireRate + item.fireRate);
-    p.speed += item.speed;
-    p.dmg += item.dmg;
-    if (item.triple) p.triple = true;
-    if (item.homing) p.homing = true;
-}
-
-// --- 7. RENDERER (ROUNDED EDGES DESIGN) ---
-function drawRoundedRect(x, y, w, h, r, fill, stroke) {
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.arcTo(x + w, y, x + w, y + h, r);
-    ctx.arcTo(x + w, y + h, x, y + h, r);
-    ctx.arcTo(x, y + h, x, y, r);
-    ctx.arcTo(x, y, x + w, y, r);
-    ctx.closePath();
-    if (fill) { ctx.fillStyle = fill; ctx.fill(); }
-    if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 3; ctx.stroke(); }
-}
-
+// --- RENDER ENGINE (NEON GLOW) ---
 function draw() {
-    // Clear Canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, 600, 600);
 
-    // Floor Base
-    drawRoundedRect(20, 20, 760, 460, 20, "#3a322d", "#221c19");
+    // 1. Dark Room Floor
+    ctx.fillStyle = "#0c0c14";
+    ctx.fillRect(0, 0, 600, 600);
 
-    const roomKey = `${state.currentRoomPos.x},${state.currentRoomPos.y}`;
-    const room = state.grid[roomKey];
+    // 2. Obstacles (5 Room Layout Variants)
+    const room = getRoomData(state.currentRoom.x, state.currentRoom.y);
+    ctx.fillStyle = "#181828";
+    ctx.strokeStyle = "#00ffc8";
+    ctx.lineWidth = 2;
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = "#00ffc8";
 
-    // Draw Doors (Rounded Aesthetics)
-    if (room) {
-        ctx.fillStyle = "#8b5a2b";
-        if (room.doors.N) drawRoundedRect(360, 10, 80, 20, 8, "#8b5a2b");
-        if (room.doors.S) drawRoundedRect(360, 470, 80, 20, 8, "#8b5a2b");
-        if (room.doors.E) drawRoundedRect(770, 210, 20, 80, 8, "#8b5a2b");
-        if (room.doors.W) drawRoundedRect(10, 210, 20, 80, 8, "#8b5a2b");
+    if (room.variant === 1) { // 4 Pillars
+        [150, 450].forEach(x => [150, 450].forEach(y => {
+            ctx.fillRect(x-20, y-20, 40, 40); ctx.strokeRect(x-20, y-20, 40, 40);
+        }));
+    } else if (room.variant === 2) { // Center Block
+        ctx.fillRect(240, 240, 120, 120); ctx.strokeRect(240, 240, 120, 120);
+    } else if (room.variant === 3) { // Cross
+        ctx.fillRect(280, 120, 40, 360); ctx.fillRect(120, 280, 360, 40);
+    } else if (room.variant === 4) { // Corner Blocks
+        [[80,80], [480,80], [80,480], [480,480]].forEach(([x,y]) => {
+            ctx.fillRect(x-20, y-20, 40, 40); ctx.strokeRect(x-20, y-20, 40, 40);
+        });
     }
 
-    // Trapdoor
-    state.trapdoors.forEach(td => drawRoundedRect(td.x - 20, td.y - 20, 40, 40, 10, "#000", "#555"));
+    // 3. Walls & Doors
+    ctx.strokeStyle = "#ff0055";
+    ctx.shadowColor = "#ff0055";
+    ctx.shadowBlur = 12;
+    ctx.lineWidth = 6;
+    ctx.strokeRect(10, 10, 580, 580);
 
-    // Pedestal Items
-    state.pedestalItems.forEach(pi => {
-        drawRoundedRect(pi.x - 18, pi.y - 18, 36, 36, 8, "#666", "#aaa");
-        ctx.fillStyle = pi.item.color;
-        ctx.beginPath(); ctx.arc(pi.x, pi.y - 5, 10, 0, Math.PI*2); ctx.fill();
-        if (pi.price > 0) {
-            ctx.fillStyle = "#ffd700"; ctx.font = "bold 14px sans-serif";
-            ctx.fillText(`${pi.price}¢`, pi.x - 10, pi.y + 30);
-        }
+    // 4 Doors (상하좌우 꼭 존재)
+    ctx.fillStyle = "#00ffc8";
+    ctx.shadowColor = "#00ffc8";
+    ctx.shadowBlur = 15;
+    ctx.fillRect(282, 4, 36, 12);  // North Door
+    ctx.fillRect(282, 584, 36, 12); // South Door
+    ctx.fillRect(4, 282, 12, 36);  // West Door
+    ctx.fillRect(584, 282, 12, 36); // East Door
+
+    // 4. Bombs
+    state.bombs.forEach(b => {
+        ctx.fillStyle = "#ff5500";
+        ctx.shadowColor = "#ff5500";
+        ctx.shadowBlur = 15;
+        ctx.beginPath(); ctx.arc(b.x, b.y, b.r + (b.timer % 10 > 5 ? 2 : 0), 0, Math.PI*2); ctx.fill();
     });
 
-    // Drops
-    state.drops.forEach(d => {
-        let col = "#ffd700";
-        if (d.type === 'heart') col = "#ff4444";
-        if (d.type === 'bomb') col = "#333";
-        if (d.type === 'key') col = "#00bfff";
-        drawRoundedRect(d.x - 8, d.y - 8, 16, 16, 5, col);
-    });
-
-    // Tears
-    state.tears.forEach(t => {
-        ctx.fillStyle = t.isEnemy ? "#ff0000" : (state.player.homing ? "#8a2be2" : "#00ffff");
-        ctx.beginPath(); ctx.arc(t.x, t.y, t.r, 0, Math.PI*2); ctx.fill();
-    });
-
-    // Enemies & Boss
+    // 5. Enemies
     state.enemies.forEach(e => {
-        drawRoundedRect(e.x - e.r, e.y - e.r, e.r * 2, e.r * 2, 12, e.color, "#000");
-        if (e.type === 'boss') {
-            // Boss HP Bar
-            drawRoundedRect(e.x - 40, e.y - 50, 80, 10, 4, "rgba(0,0,0,0.5)");
-            drawRoundedRect(e.x - 40, e.y - 50, (e.hp / e.maxHp) * 80, 10, 4, "#ff0000");
-        }
+        ctx.fillStyle = e.type === 'fly' ? "#ff0055" : "#ffaa00";
+        ctx.shadowColor = ctx.fillStyle;
+        ctx.shadowBlur = 10;
+        ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, Math.PI*2); ctx.fill();
     });
 
-    // Player
+    // 6. Player
     const p = state.player;
     if (p.invulnerable % 4 < 2) {
-        drawRoundedRect(p.x - p.r, p.y - p.r, p.r * 2, p.r * 2, 10, "#6495ED", "#ffffff");
-    }
+        ctx.fillStyle = "#00ffc8";
+        ctx.shadowColor = "#00ffc8";
+        ctx.shadowBlur = 15;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
 
-    // UI Updates
-    document.getElementById("hpDisplay").innerText = "❤".repeat(Math.ceil(p.hp / 2));
-    document.getElementById("coinCount").innerText = state.coins;
-    document.getElementById("bombCount").innerText = state.bombs;
-    document.getElementById("keyCount").innerText = state.keys;
-    document.getElementById("floorCount").innerText = state.floor;
-
-    updateMinimap();
-}
-
-function updateMinimap() {
-    const minimap = document.getElementById("minimap");
-    minimap.innerHTML = "";
-    for (let y = 0; y < 5; y++) {
-        for (let x = 0; x < 5; x++) {
-            const cell = document.createElement("div");
-            cell.className = "map-cell";
-            const roomKey = `${x},${y}`;
-            const room = state.grid[roomKey];
-            if (room && room.visited) {
-                cell.classList.add("visited");
-                if (room.type === ROOM_TYPES.ITEM) cell.classList.add("item");
-                if (room.type === ROOM_TYPES.BOSS) cell.classList.add("boss");
-                if (room.type === ROOM_TYPES.SHOP) cell.classList.add("shop");
-                if (x === state.currentRoomPos.x && y === state.currentRoomPos.y) {
-                    cell.classList.add("current");
-                }
-            }
-            minimap.appendChild(cell);
+        // Sword Model & Swing Animation
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        if (p.isAttacking) {
+            const currentArc = p.attackAngle - Math.PI/3 + (p.attackProgress * Math.PI * 0.66);
+            ctx.rotate(currentArc);
+        } else {
+            ctx.rotate(p.angle);
         }
+
+        // Sword Visual (Neon Blade)
+        ctx.strokeStyle = "#ffffff";
+        ctx.shadowColor = "#00ffc8";
+        ctx.shadowBlur = 10;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(8, 0);
+        ctx.lineTo(28, 0); // 칼날
+        ctx.stroke();
+
+        ctx.restore();
     }
+
+    // Particles
+    state.particles.forEach(pt => {
+        ctx.fillStyle = pt.color;
+        ctx.shadowColor = pt.color;
+        ctx.shadowBlur = 8;
+        ctx.beginPath(); ctx.arc(pt.x, pt.y, 3, 0, Math.PI*2); ctx.fill();
+    });
+
+    ctx.shadowBlur = 0; // Reset
 }
 
-// System Boot
-generateFloor();
-function mainLoop() {
+// System Init
+loadRoom(0, 0);
+function loop() {
     update();
     draw();
-    requestAnimationFrame(mainLoop);
+    requestAnimationFrame(loop);
 }
-mainLoop();
+loop();
 </script>
-
-<div id="minimap"></div>
-
 </body>
 </html>
