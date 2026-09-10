@@ -1,1 +1,259 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Isaac Web Roguelike</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; }
+        body { background: #111; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        #gameCanvas { background: #222; border: 4px solid #444; border-radius: 8px; max-width: 100%; max-height: 70vh; }
+        #controls { display: flex; justify-content: space-between; width: 100%; max-width: 800px; padding: 10px 20px; }
+        .touch-zone { width: 120px; height: 120px; background: rgba(255,255,255,0.1); border: 2px dashed #666; border-radius: 50%; position: relative; }
+        .knob { width: 40px; height: 40px; background: rgba(255,255,255,0.5); border-radius: 50%; position: absolute; top: 40px; left: 40px; pointer-events: none; }
+        #hud { font-size: 18px; margin-bottom: 8px; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div id="hud">
+    HP: <span id="hp">❤❤❤</span> | 동전: <span id="coins">0</span> | 층: <span id="floor">1</span>
+</div>
+<canvas id="gameCanvas" width="800" height="500"></canvas>
+
+<div id="controls">
+    <div id="moveZone" class="touch-zone"><div id="moveKnob" class="knob"></div></div>
+    <div id="shootZone" class="touch-zone"><div id="shootKnob" class="knob"></div></div>
+</div>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+// 게임 상태
+const state = {
+    hp: 6, maxHp: 6, coins: 0, floor: 1,
+    player: { x: 400, y: 250, r: 15, speed: 4, lastShot: 0, fireRate: 200 },
+    keys: {},
+    moveDir: { x: 0, y: 0 },
+    shootDir: { x: 0, y: 0 },
+    tears: [],
+    enemies: [],
+    items: [],
+    boss: null
+};
+
+// 입력 처리 (키보드)
+window.addEventListener("keydown", e => state.keys[e.key.toLowerCase()] = true);
+window.addEventListener("keyup", e => state.keys[e.key.toLowerCase()] = false);
+
+// 조이스틱 터치 이벤트 구현
+function setupJoystick(zoneId, knobId, onMove) {
+    const zone = document.getElementById(zoneId);
+    const knob = document.getElementById(knobId);
+    let touchId = null;
+    let basePos = { x: 0, y: 0 };
+
+    zone.addEventListener("touchstart", e => {
+        const touch = e.changedTouches[0];
+        touchId = touch.identifier;
+        const rect = zone.getBoundingClientRect();
+        basePos = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        updateJoystick(touch);
+    });
+
+    zone.addEventListener("touchmove", e => {
+        for (let t of e.changedTouches) {
+            if (t.identifier === touchId) updateJoystick(t);
+        }
+    });
+
+    const reset = e => {
+        for (let t of e.changedTouches) {
+            if (t.identifier === touchId) {
+                touchId = null;
+                knob.style.transform = `translate(0px, 0px)`;
+                onMove({ x: 0, y: 0 });
+            }
+        }
+    };
+    zone.addEventListener("touchend", reset);
+    zone.addEventListener("touchcancel", reset);
+
+    function updateJoystick(touch) {
+        let dx = touch.clientX - basePos.x;
+        let dy = touch.clientY - basePos.y;
+        let dist = Math.hypot(dx, dy);
+        let maxDist = 40;
+        if (dist > maxDist) { dx = (dx / dist) * maxDist; dy = (dy / dist) * maxDist; }
+        knob.style.transform = `translate(${dx}px, ${dy}px)`;
+        onMove({ x: dx / maxDist, y: dy / maxDist });
+    }
+}
+
+setupJoystick("moveZone", "moveKnob", dir => state.moveDir = dir);
+setupJoystick("shootZone", "shootKnob", dir => state.shootDir = dir);
+
+// 방 및 몬스터 스폰
+function spawnWave() {
+    state.enemies = [];
+    if (state.floor % 3 === 0) {
+        // 보스전
+        state.boss = { x: 400, y: 150, r: 40, hp: 100, maxHp: 100, timer: 0 };
+    } else {
+        // 일반 몬스터
+        state.boss = null;
+        for (let i = 0; i < 3 + state.floor; i++) {
+            state.enemies.push({
+                x: Math.random() * 700 + 50,
+                y: Math.random() * 400 + 50,
+                r: 12, hp: 5, speed: 1.5 + Math.random()
+            });
+        }
+    }
+}
+
+// Update Loop
+function update() {
+    const p = state.player;
+
+    // 키보드 이동 변환
+    let mx = state.moveDir.x, my = state.moveDir.y;
+    if (state.keys['a']) mx = -1; if (state.keys['d']) mx = 1;
+    if (state.keys['w']) my = -1; if (state.keys['s']) my = 1;
+
+    p.x = Math.max(p.r, Math.min(canvas.width - p.r, p.x + mx * p.speed));
+    p.y = Math.max(p.r, Math.min(canvas.height - p.r, p.y + my * p.speed));
+
+    // 키보드 공격 변환
+    let sx = state.shootDir.x, sy = state.shootDir.y;
+    if (state.keys['arrowleft']) sx = -1; if (state.keys['arrowright']) sx = 1;
+    if (state.keys['arrowup']) sy = -1; if (state.keys['arrowdown']) sy = 1;
+
+    const now = Date.now();
+    if ((sx !== 0 || sy !== 0) && now - p.lastShot > p.fireRate) {
+        const len = Math.hypot(sx, sy);
+        state.tears.push({ x: p.x, y: p.y, vx: (sx / len) * 8, vy: (sy / len) * 8, r: 6, life: 60 });
+        p.lastShot = now;
+    }
+
+    // 눈물 이동 및 충돌
+    state.tears.forEach((t, index) => {
+        t.x += t.vx; t.y += t.vy; t.life--;
+
+        // 적 충돌
+        state.enemies.forEach((e, ei) => {
+            if (Math.hypot(t.x - e.x, t.y - e.y) < t.r + e.r) {
+                e.hp -= 1.5;
+                t.life = 0;
+            }
+        });
+
+        // 보스 충돌
+        if (state.boss && Math.hypot(t.x - state.boss.x, t.y - state.boss.y) < t.r + state.boss.r) {
+            state.boss.hp -= 1.5;
+            t.life = 0;
+        }
+    });
+    state.tears = state.tears.filter(t => t.life > 0);
+
+    // 일반 적 AI & 충돌
+    state.enemies.forEach(e => {
+        const dx = p.x - e.x, dy = p.y - e.y;
+        const dist = Math.hypot(dx, dy);
+        e.x += (dx / dist) * e.speed;
+        e.y += (dy / dist) * e.speed;
+
+        if (dist < p.r + e.r) {
+            state.hp -= 0.05; // 지속 데미지
+        }
+    });
+    state.enemies = state.enemies.filter(e => e.hp > 0);
+
+    // 보스 AI
+    if (state.boss) {
+        const b = state.boss;
+        b.timer += 0.05;
+        b.x += Math.cos(b.timer) * 3;
+
+        // 보스 플레이어 충돌
+        if (Math.hypot(p.x - b.x, p.y - b.y) < p.r + b.r) state.hp -= 0.1;
+
+        if (b.hp <= 0) {
+            state.boss = null;
+            state.coins += 10;
+        }
+    }
+
+    // 클리어 판정
+    if (state.enemies.length === 0 && !state.boss) {
+        state.floor++;
+        state.coins += 3;
+        spawnWave();
+    }
+
+    // UI 갱신
+    let hearts = "";
+    for (let i = 0; i < Math.ceil(state.hp / 2); i++) hearts += "❤";
+    document.getElementById("hp").innerText = hearts || "사망";
+    document.getElementById("coins").innerText = state.coins;
+    document.getElementById("floor").innerText = state.floor;
+
+    if (state.hp <= 0) {
+        alert("게임 오버! 클리어한 층: " + state.floor);
+        state.hp = 6; state.floor = 1; state.coins = 0;
+        spawnWave();
+    }
+}
+
+// Render Loop
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 플레이어
+    ctx.fillStyle = "#6495ED";
+    ctx.beginPath();
+    ctx.arc(state.player.x, state.player.y, state.player.r, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 눈물(탄막)
+    ctx.fillStyle = "#00ffff";
+    state.tears.forEach(t => {
+        ctx.beginPath();
+        ctx.arc(t.x, t.y, t.r, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    // 일반 적
+    ctx.fillStyle = "#ff4444";
+    state.enemies.forEach(e => {
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    // 보스
+    if (state.boss) {
+        ctx.fillStyle = "#8B0000";
+        ctx.beginPath();
+        ctx.arc(state.boss.x, state.boss.y, state.boss.r, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 보스 체력바
+        ctx.fillStyle = "#f00";
+        ctx.fillRect(state.boss.x - 40, state.boss.y - 55, (state.boss.hp / state.boss.maxHp) * 80, 8);
+    }
+}
+
+function gameLoop() {
+    update();
+    draw();
+    requestAnimationFrame(gameLoop);
+}
+
+spawnWave();
+gameLoop();
+</script>
+</body>
+</html>
 
