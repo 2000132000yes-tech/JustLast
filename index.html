@@ -3,45 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Square Game</title>
+    <title>Dark Room Game</title>
     <style>
         * {
             box-sizing: border-box;
             user-select: none;
             -webkit-user-select: none;
             touch-action: none;
+            -webkit-tap-highlight-color: transparent; /* 클릭/터치시 뜨는 하이라이트 제거 */
+            outline: none;
         }
 
         body {
             margin: 0;
             padding: 0;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            background-color: #f0f0f0;
+            min-height: 100vh;
+            background-color: #0d0d0d; /* 전체 어두운 배경 */
+            color: #ffffff;
+            font-family: sans-serif;
         }
 
-        /* 정사각형 화면 */
-        #game-screen {
-            width: 400px;
-            height: 400px;
-            background-color: #ffffff;
-            border: 3px solid #000000;
+        /* 뭉툭한 꼭짓점의 어두운 방 */
+        #room {
+            width: 320px;
+            height: 320px;
+            background-color: #1a1a1a;
+            border: 4px solid #333333;
+            border-radius: 24px; /* 뭉툭한 꼭짓점 */
             position: relative;
             overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
         }
 
-        /* 조이스틱 영역 (좌측 하단) */
+        /* 상하좌우 문 */
+        .door {
+            position: absolute;
+            background-color: #0d0d0d;
+            border: 2px solid #444444;
+            border-radius: 4px;
+        }
+
+        /* 문 위치 설정 */
+        .door-top { top: 0; left: 50%; transform: translateX(-50%); width: 60px; height: 10px; border-top: none; border-radius: 0 0 6px 6px; }
+        .door-bottom { bottom: 0; left: 50%; transform: translateX(-50%); width: 60px; height: 10px; border-bottom: none; border-radius: 6px 6px 0 0; }
+        .door-left { top: 50%; left: 0; transform: translateY(-50%); width: 10px; height: 60px; border-left: none; border-radius: 0 6px 6px 0; }
+        .door-right { top: 50%; right: 0; transform: translateY(-50%); width: 10px; height: 60px; border-right: none; border-radius: 6px 0 0 6px; }
+
+        /* 뭉툭한 캐릭터 */
+        #player {
+            width: 30px;
+            height: 30px;
+            background-color: #6366f1;
+            border: 2px solid #818cf8;
+            border-radius: 8px; /* 뭉툭한 꼭짓점 */
+            position: absolute;
+            top: 143px;
+            left: 143px;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+        }
+
+        /* 화면 밖(방 외부 하단) 컨트롤러 영역 */
+        #controls-container {
+            width: 320px;
+            height: 140px;
+            margin-top: 25px;
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* 조이스틱 영역 */
         #joystick-base {
             width: 100px;
             height: 100px;
-            background-color: rgba(0, 0, 0, 0.1);
-            border: 2px solid #333333;
+            background-color: #262626;
+            border: 2px solid #404040;
             border-radius: 50%;
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
+            position: relative;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -50,37 +93,44 @@
         #joystick-stick {
             width: 40px;
             height: 40px;
-            background-color: #333333;
+            background-color: #525252;
             border-radius: 50%;
             position: absolute;
         }
 
-        /* 공격 버튼 (우측 하단) */
+        /* 공격 버튼 */
         #attack-btn {
             width: 80px;
             height: 80px;
-            background-color: #ff4d4d;
-            color: #ffffff;
-            border: 2px solid #b30000;
+            background-color: #991b1b;
+            color: #fca5a5;
+            border: 2px solid #dc2626;
             border-radius: 50%;
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            outline: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
 
         #attack-btn:active {
-            background-color: #cc0000;
+            background-color: #7f1d1d;
         }
     </style>
 </head>
 <body>
 
-    <!-- 정사각형 화면 -->
-    <div id="game-screen">
+    <!-- 어두운 방 및 캐릭터 -->
+    <div id="room">
+        <div class="door door-top"></div>
+        <div class="door door-bottom"></div>
+        <div class="door door-left"></div>
+        <div class="door door-right"></div>
+        
+        <div id="player"></div>
+    </div>
+
+    <!-- 방 외부 하단 컨트롤러 -->
+    <div id="controls-container">
         <!-- 조이스틱 -->
         <div id="joystick-base">
             <div id="joystick-stick"></div>
@@ -91,13 +141,21 @@
     </div>
 
     <script>
+        const room = document.getElementById('room');
+        const player = document.getElementById('player');
         const base = document.getElementById('joystick-base');
         const stick = document.getElementById('joystick-stick');
         const attackBtn = document.getElementById('attack-btn');
 
+        // 캐릭터 위치 및 속도 상태
+        let playerX = 143;
+        let playerY = 143;
+        let moveX = 0;
+        let moveY = 0;
+
         let joystickPointerId = null;
 
-        // --- 조이스틱 로직 (Pointer Events로 동시 터치 지원) ---
+        // --- 조이스틱 로직 (Pointer Events 사용으로 동시 입력 지원) ---
         base.addEventListener('pointerdown', (e) => {
             joystickPointerId = e.pointerId;
             base.setPointerCapture(e.pointerId);
@@ -114,6 +172,8 @@
             if (e.pointerId === joystickPointerId) {
                 joystickPointerId = null;
                 stick.style.transform = 'translate(0px, 0px)';
+                moveX = 0;
+                moveY = 0;
             }
         };
 
@@ -137,11 +197,34 @@
             }
 
             stick.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+
+            // 이동 방향 벡터 계산 (-1 ~ 1 사이)
+            moveX = deltaX / maxRadius;
+            moveY = deltaY / maxRadius;
         }
 
-        // --- 공격 버튼 로직 ---
+        // --- 게임 프레임 업데이트 루프 (캐릭터 이동) ---
+        function gameLoop() {
+            const speed = 3; // 이동 속도
+            playerX += moveX * speed;
+            playerY += moveY * speed;
+
+            // 방 경계 제한 (320px - 캐릭터 30px)
+            playerX = Math.max(4, Math.min(286, playerX));
+            playerY = Math.max(4, Math.min(286, playerY));
+
+            player.style.left = playerX + 'px';
+            player.style.top = playerY + 'px';
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // 게임 루프 시작
+        requestAnimationFrame(gameLoop);
+
+        // --- 공격 버튼 클릭 로직 ---
         attackBtn.addEventListener('pointerdown', (e) => {
-            // 멀티터치를 지원하기 위해 조이스틱과 독립적으로 작동합니다.
+            // 멀티터치를 지원하며 조이스틱 조작 중에도 동시에 작동 가능합니다.
         });
     </script>
 </body>
