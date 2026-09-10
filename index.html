@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dark Room Game</title>
+    <title>Dungeon Game</title>
     <style>
         * {
             box-sizing: border-box;
@@ -22,13 +22,127 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-color: #0d0d0d;
+            background-color: #080808;
             color: #ffffff;
-            font-family: sans-serif;
+            font-family: monospace, sans-serif;
             overflow: hidden;
         }
 
-        /* 원래 넓은 정사각형 방 크기 유지 */
+        /* UI 상단 바 */
+        #ui-bar {
+            width: 320px;
+            margin-bottom: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        /* 체력바 */
+        #hp-container {
+            width: 100%;
+            height: 14px;
+            background-color: #2a0808;
+            border: 2px solid #5a1010;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #hp-bar {
+            width: 100%;
+            height: 100%;
+            background-color: #dc2626;
+            transition: width 0.2s ease;
+        }
+
+        /* 인벤토리/아이콘 정보 바 */
+        #status-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 12px;
+            color: #d1d5db;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* --- PURE CSS COMMON ICONS --- */
+        /* 커스텀 코인 아이콘 */
+        .icon-coin {
+            width: 12px;
+            height: 12px;
+            background-color: #fbbf24;
+            border: 1px solid #b45309;
+            border-radius: 50%;
+            box-shadow: inset -1px -1px 0 #d97706;
+            display: inline-block;
+        }
+
+        /* 커스텀 열쇠 아이콘 */
+        .icon-key {
+            width: 12px;
+            height: 12px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .icon-key::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 5px;
+            border: 1.5px solid #eab308;
+            border-radius: 50%;
+        }
+
+        .icon-key::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 2px;
+            width: 2px;
+            height: 7px;
+            background-color: #eab308;
+            box-shadow: 2px 2px 0 #eab308;
+        }
+
+        /* 커스텀 포션 아이콘 */
+        .icon-potion {
+            width: 10px;
+            height: 12px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .icon-potion::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 3px;
+            width: 4px;
+            height: 3px;
+            background-color: #94a3b8;
+        }
+
+        .icon-potion::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 0;
+            width: 10px;
+            height: 9px;
+            background-color: #ef4444;
+            border-radius: 2px 2px 4px 4px;
+            border: 1px solid #b91c1c;
+        }
+
+        /* 게임 방 메인 */
         #room {
             width: 320px;
             height: 320px;
@@ -47,11 +161,12 @@
             box-shadow: 0 0 20px rgba(0,0,0,0.9);
         }
 
-        /* 연한 갈색 문 */
+        /* 상하좌우 문 */
         .door {
             position: absolute;
             background-color: #b08d57;
             border: 1px solid #7a5e37;
+            z-index: 2;
         }
 
         .door-top { top: 0; left: 50%; transform: translateX(-50%); width: 44px; height: 8px; border-top: none; border-radius: 0 0 4px 4px; }
@@ -59,94 +174,160 @@
         .door-left { top: 50%; left: 0; transform: translateY(-50%); width: 8px; height: 44px; border-left: none; border-radius: 0 4px 4px 0; }
         .door-right { top: 50%; right: 0; transform: translateY(-50%); width: 8px; height: 44px; border-right: none; border-radius: 4px 0 0 4px; }
 
-        /* 캐릭터 (더 작아짐, 14px) */
+        /* 내부 장애물 벽 (방 모양 변형용) */
+        .wall {
+            position: absolute;
+            background-color: #1a1007;
+            border: 1px solid #3a2512;
+            border-radius: 4px;
+            z-index: 1;
+        }
+
+        /* 플레이어 (크기 12px) */
         #player {
-            width: 14px;
-            height: 14px;
+            width: 12px;
+            height: 12px;
             background-color: #6366f1;
             border: 1px solid #818cf8;
-            border-radius: 4px;
+            border-radius: 3px;
             position: absolute;
-            top: 153px;
-            left: 153px;
-            box-shadow: 0 0 5px rgba(99, 102, 241, 0.6);
-            /* 회전 중심축 설정 */
+            top: 154px;
+            left: 154px;
+            box-shadow: 0 0 6px rgba(99, 102, 241, 0.6);
             transform-origin: center center;
+            z-index: 10;
         }
 
-        /* 시선 방향을 나타내는 눈점 */
-        #player::after {
-            content: '';
-            position: absolute;
-            right: 2px;
-            top: 3px;
-            width: 3px;
-            height: 3px;
-            background-color: #ffffff;
-            border-radius: 50%;
-        }
-
-        /* 단검 피벗 (회전축) */
+        /* 단검 피벗 */
         #dagger-pivot {
             position: absolute;
-            top: 50%;
-            left: 50%;
+            top: 6px;
+            left: 6px;
             width: 0;
             height: 0;
             transform-origin: 0 0;
         }
 
-        /* 자연스럽게 쥔 단검 */
+        /* 리얼한 게임스타일 단검 디자인 */
         .dagger {
             position: absolute;
             top: -2px;
-            left: 4px;
-            width: 9px;
+            left: 5px;
+            width: 10px;
             height: 2px;
-            background-color: #e2e8f0;
-            border-radius: 0 2px 2px 0;
-            box-shadow: 0 0 3px rgba(255, 255, 255, 0.9);
+            background: linear-gradient(90deg, #94a3b8, #ffffff);
+            border-radius: 0 3px 3px 0;
+            box-shadow: 0 0 2px rgba(255, 255, 255, 0.8);
         }
 
-        /* 단검 가드 및 자루 */
+        /* 검 가드 & 자루 */
         .dagger::before {
             content: '';
             position: absolute;
             left: -2px;
-            top: -1px;
+            top: -2px;
             width: 2px;
-            height: 4px;
-            background-color: #475569;
+            height: 6px;
+            background-color: #d97706;
         }
 
-        /* 휘두르기 애니메이션 */
+        .dagger::after {
+            content: '';
+            position: absolute;
+            left: -5px;
+            top: -0.5px;
+            width: 3px;
+            height: 3px;
+            background-color: #475569;
+            border-radius: 1px;
+        }
+
+        /* 공격 휘두르기 애니메이션 */
         .slash {
-            animation: slash-anim 0.15s ease-out;
+            animation: slash-anim 0.12s ease-out;
         }
 
         @keyframes slash-anim {
-            0% { transform: rotate(-50deg); }
-            50% { transform: rotate(70deg); }
+            0% { transform: rotate(-60deg); }
+            50% { transform: rotate(80deg); }
             100% { transform: rotate(0deg); }
         }
 
-        /* 방 외부 컨트롤러 영역 */
+        /* 적 (Enemy) */
+        .enemy {
+            width: 12px;
+            height: 12px;
+            background-color: #ef4444;
+            border: 1px solid #f87171;
+            border-radius: 3px;
+            position: absolute;
+            box-shadow: 0 0 5px rgba(239, 68, 68, 0.6);
+            z-index: 5;
+        }
+
+        /* 상자 (일반) */
+        .chest {
+            width: 16px;
+            height: 14px;
+            background-color: #854d0e;
+            border: 2px solid #a16207;
+            border-radius: 3px;
+            position: absolute;
+            z-index: 4;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .chest::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 5px;
+            width: 2px;
+            height: 3px;
+            background-color: #fbbf24;
+        }
+
+        /* 황금 상자 */
+        .chest.gold {
+            background-color: #eab308;
+            border: 2px solid #fef08a;
+            box-shadow: 0 0 8px rgba(234, 179, 8, 0.8);
+        }
+
+        .chest.gold::after {
+            background-color: #78350f;
+        }
+
+        /* 드롭 아이템 & 튀어오르는 애니메이션 */
+        .drop-item {
+            position: absolute;
+            z-index: 8;
+            animation: drop-bounce 0.4s ease-out forwards;
+        }
+
+        @keyframes drop-bounce {
+            0% { transform: translate(0, 0) scale(0.5); opacity: 0; }
+            50% { transform: translate(var(--dx), var(--dy)) scale(1.2); opacity: 1; }
+            100% { transform: translate(var(--dx), var(--dy)) scale(1); opacity: 1; }
+        }
+
+        /* 컨트롤러 영역 (확대된 크기 적용) */
         #controls-container {
             width: 320px;
-            height: 100px;
-            margin-top: 20px;
+            height: 130px;
+            margin-top: 15px;
             position: relative;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        /* 소형 조이스틱 & 버튼 */
+        /* 확장된 조이스틱 (110px) */
         #joystick-base {
-            width: 80px;
-            height: 80px;
-            background-color: #262626;
-            border: 2px solid #404040;
+            width: 110px;
+            height: 110px;
+            background-color: #1f1f1f;
+            border: 3px solid #333333;
             border-radius: 50%;
             position: relative;
             display: flex;
@@ -155,24 +336,26 @@
         }
 
         #joystick-stick {
-            width: 30px;
-            height: 30px;
-            background-color: #525252;
+            width: 45px;
+            height: 45px;
+            background-color: #404040;
+            border: 2px solid #525252;
             border-radius: 50%;
             position: absolute;
         }
 
+        /* 확장된 공격 버튼 (85px) */
         #attack-btn {
-            width: 60px;
-            height: 60px;
+            width: 85px;
+            height: 85px;
             background-color: #991b1b;
             color: #fca5a5;
-            border: 2px solid #dc2626;
+            border: 3px solid #dc2626;
             border-radius: 50%;
-            font-size: 13px;
+            font-size: 15px;
             font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 3px 5px rgba(0,0,0,0.4);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
         }
 
         #attack-btn:active {
@@ -182,12 +365,32 @@
 </head>
 <body>
 
+    <!-- UI 상단 바 -->
+    <div id="ui-bar">
+        <div id="hp-container">
+            <div id="hp-bar"></div>
+        </div>
+        <div id="status-info">
+            <div class="info-item">
+                <span class="icon-coin"></span>
+                <span id="coin-txt">000</span>
+            </div>
+            <div class="info-item">
+                <span class="icon-key"></span>
+                <span id="key-txt">000</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 게임 화면 -->
     <div id="room">
+        <!-- 상하좌우 문 -->
         <div class="door door-top"></div>
         <div class="door door-bottom"></div>
         <div class="door door-left"></div>
         <div class="door door-right"></div>
-        
+
+        <!-- 플레이어 -->
         <div id="player">
             <div id="dagger-pivot">
                 <div class="dagger"></div>
@@ -195,30 +398,243 @@
         </div>
     </div>
 
+    <!-- 외부 조작 컨트롤러 -->
     <div id="controls-container">
         <div id="joystick-base">
             <div id="joystick-stick"></div>
         </div>
-
         <button id="attack-btn">공격</button>
     </div>
 
     <script>
+        const room = document.getElementById('room');
         const player = document.getElementById('player');
         const daggerPivot = document.getElementById('dagger-pivot');
         const base = document.getElementById('joystick-base');
         const stick = document.getElementById('joystick-stick');
         const attackBtn = document.getElementById('attack-btn');
+        const hpBar = document.getElementById('hp-bar');
+        const coinTxt = document.getElementById('coin-txt');
+        const keyTxt = document.getElementById('key-txt');
 
-        let playerX = 153;
-        let playerY = 153;
+        // 게임 제어 변수
+        let playerX = 154;
+        let playerY = 154;
         let moveX = 0;
         let moveY = 0;
-        let playerAngle = 0; // 바라보는 각도 (도 단위)
+        let playerAngle = 0;
+
+        let maxHp = 100;
+        let currentHp = 100;
+        let coins = 0;
+        let keys = 0;
+        let distanceFromStart = 0;
+
+        let enemies = [];
+        let chests = [];
+        let drops = [];
+        let walls = [];
 
         let joystickPointerId = null;
 
-        // 조이스틱 조작
+        // --- 방 레이아웃 (모양 5가지 정의) ---
+        const roomTemplates = [
+            // 0번: 기본 빈 방
+            [],
+            // 1번: 중앙 기둥 4개
+            [
+                {x: 80, y: 80, w: 40, h: 40}, {x: 200, y: 80, w: 40, h: 40},
+                {x: 80, y: 200, w: 40, h: 40}, {x: 200, y: 200, w: 40, h: 40}
+            ],
+            // 2번: 중앙 대형 방벽
+            [{x: 120, y: 120, w: 80, h: 80}],
+            // 3번: 십자형 구조물
+            [
+                {x: 140, y: 60, w: 40, h: 60}, {x: 140, y: 200, w: 40, h: 60},
+                {x: 60, y: 140, w: 60, h: 40}, {x: 200, y: 140, w: 60, h: 40}
+            ],
+            // 4번: 코너 장애물 4개
+            [
+                {x: 30, y: 30, w: 50, h: 50}, {x: 240, y: 30, w: 50, h: 50},
+                {x: 30, y: 240, w: 50, h: 50}, {x: 240, y: 240, w: 50, h: 50}
+            ]
+        ];
+
+        // 방 초기화 함수
+        function loadRoom(doorType) {
+            // 기존 객체 삭제
+            enemies.forEach(e => e.el.remove());
+            chests.forEach(c => c.el.remove());
+            drops.forEach(d => d.el.remove());
+            walls.forEach(w => w.el.remove());
+
+            enemies = [];
+            chests = [];
+            drops = [];
+            walls = [];
+
+            distanceFromStart++;
+
+            // 플레이어 위치 설정 (문 통과 시 위치 조정)
+            if (doorType === 'top') playerY = 280;
+            else if (doorType === 'bottom') playerY = 30;
+            else if (doorType === 'left') playerX = 280;
+            else if (doorType === 'right') playerX = 30;
+
+            // 방 무작위 형태 5개 중 하나 선택
+            const templateIdx = Math.floor(Math.random() * roomTemplates.length);
+            roomTemplates[templateIdx].forEach(w => {
+                const wallEl = document.createElement('div');
+                wallEl.className = 'wall';
+                wallEl.style.left = w.x + 'px';
+                wallEl.style.top = w.y + 'px';
+                wallEl.style.width = w.w + 'px';
+                wallEl.style.height = w.h + 'px';
+                room.appendChild(wallEl);
+                walls.push({ x: w.x, y: w.y, w: w.w, h: w.h, el: wallEl });
+            });
+
+            // 적/상자 생성 판단 (거리 비례)
+            const hasEnemies = Math.random() > 0.25;
+
+            if (hasEnemies) {
+                // 거리에 비례한 적 스폰 수
+                const minE = Math.min(2 + Math.floor(distanceFromStart * 0.8), 12);
+                const maxE = Math.min(4 + Math.floor(distanceFromStart * 1.5), 25);
+                const count = Math.floor(Math.random() * (maxE - minE + 1)) + minE;
+
+                for (let i = 0; i < count; i++) {
+                    spawnEnemy();
+                }
+            } else {
+                // 적 없을 때: 상자 1~5개 무작위 생성
+                const chestCount = Math.floor(Math.random() * 5) + 1;
+                if (chestCount === 5) {
+                    // 상자 5개일 시 황금상자 생성
+                    spawnChest(true);
+                } else {
+                    for (let i = 0; i < chestCount; i++) {
+                        spawnChest(false);
+                    }
+                }
+            }
+        }
+
+        // 적 생성
+        function spawnEnemy() {
+            let x, y, collides;
+            do {
+                collides = false;
+                x = Math.random() * 260 + 30;
+                y = Math.random() * 260 + 30;
+                // 벽 충돌 검사
+                for (let w of walls) {
+                    if (x < w.x + w.w && x + 12 > w.x && y < w.y + w.h && y + 12 > w.y) {
+                        collides = true;
+                        break;
+                    }
+                }
+            } while (collides);
+
+            const el = document.createElement('div');
+            el.className = 'enemy';
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            room.appendChild(el);
+
+            enemies.push({ x, y, hp: 2, el });
+        }
+
+        // 상자 생성
+        function spawnChest(isGold) {
+            let x, y, collides;
+            do {
+                collides = false;
+                x = Math.random() * 240 + 40;
+                y = Math.random() * 240 + 40;
+                for (let w of walls) {
+                    if (x < w.x + w.w && x + 16 > w.x && y < w.y + w.h && y + 14 > w.y) {
+                        collides = true;
+                        break;
+                    }
+                }
+            } while (collides);
+
+            const el = document.createElement('div');
+            el.className = isGold ? 'chest gold' : 'chest';
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            room.appendChild(el);
+
+            chests.push({ x, y, isGold, el });
+        }
+
+        // 상자 오픈 로직
+        function openChest(c, index) {
+            if (c.isGold) {
+                if (keys < 1) return; // 황금상자는 열쇠 1개 소비
+                keys--;
+                updateUI();
+
+                // 황금 상자 보상: 코인 30~150개, 체력포션 1~2개
+                const coinAmount = Math.floor(Math.random() * 121) + 30;
+                spawnDrop('coin', coinAmount, c.x, c.y);
+
+                const potionCount = Math.floor(Math.random() * 2) + 1;
+                for (let i = 0; i < potionCount; i++) {
+                    spawnDrop('potion', 1, c.x, c.y);
+                }
+            } else {
+                // 일반 상자 보상: 무조건 코인 1~30개
+                const coinAmount = Math.floor(Math.random() * 30) + 1;
+                spawnDrop('coin', coinAmount, c.x, c.y);
+
+                // 15% 확률로 열쇠 1~3개
+                if (Math.random() < 0.15) {
+                    const keyAmount = Math.floor(Math.random() * 3) + 1;
+                    spawnDrop('key', keyAmount, c.x, c.y);
+                }
+
+                // 40% 확률로 체력 포션
+                if (Math.random() < 0.40) {
+                    spawnDrop('potion', 1, c.x, c.y);
+                }
+            }
+
+            c.el.remove();
+            chests.splice(index, 1);
+        }
+
+        // 아이템 드롭 생성 & 애니메이션
+        function spawnDrop(type, amount, x, y) {
+            const el = document.createElement('div');
+            el.className = 'drop-item';
+            if (type === 'coin') el.classList.add('icon-coin');
+            else if (type === 'key') el.classList.add('icon-key');
+            else if (type === 'potion') el.classList.add('icon-potion');
+
+            const angle = Math.random() * Math.PI * 2;
+            const dist = Math.random() * 20 + 10;
+            const dx = Math.cos(angle) * dist + 'px';
+            const dy = Math.sin(angle) * dist + 'px';
+
+            el.style.setProperty('--dx', dx);
+            el.style.setProperty('--dy', dy);
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+
+            room.appendChild(el);
+            drops.push({ x: x + parseFloat(dx), y: y + parseFloat(dy), type, amount, el });
+        }
+
+        // UI 업데이트
+        function updateUI() {
+            hpBar.style.width = Math.max(0, (currentHp / maxHp) * 100) + '%';
+            coinTxt.innerText = String(coins).padStart(3, '0');
+            keyTxt.innerText = String(keys).padStart(3, '0');
+        }
+
+        // --- 컨트롤러 지원 (Pointer Events) ---
         base.addEventListener('pointerdown', (e) => {
             e.preventDefault();
             joystickPointerId = e.pointerId;
@@ -227,17 +643,14 @@
         });
 
         base.addEventListener('pointermove', (e) => {
-            if (e.pointerId === joystickPointerId) {
-                updateJoystick(e);
-            }
+            if (e.pointerId === joystickPointerId) updateJoystick(e);
         });
 
         const resetJoystick = (e) => {
             if (e.pointerId === joystickPointerId) {
                 joystickPointerId = null;
                 stick.style.transform = 'translate(0px, 0px)';
-                moveX = 0;
-                moveY = 0;
+                moveX = 0; moveY = 0;
             }
         };
 
@@ -246,60 +659,139 @@
 
         function updateJoystick(e) {
             const rect = base.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            let dx = e.clientX - cx;
+            let dy = e.clientY - cy;
+            const maxR = rect.width / 2;
+            const dist = Math.hypot(dx, dy);
 
-            let deltaX = e.clientX - centerX;
-            let deltaY = e.clientY - centerY;
-
-            const maxRadius = rect.width / 2;
-            const distance = Math.hypot(deltaX, deltaY);
-
-            if (distance > maxRadius) {
-                deltaX = (deltaX / distance) * maxRadius;
-                deltaY = (deltaY / distance) * maxRadius;
+            if (dist > maxR) {
+                dx = (dx / dist) * maxR;
+                dy = (dy / dist) * maxR;
             }
 
-            stick.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+            stick.style.transform = `translate(${dx}px, ${dy}px)`;
+            moveX = dx / maxR;
+            moveY = dy / maxR;
 
-            moveX = deltaX / maxRadius;
-            moveY = deltaY / maxRadius;
-
-            // 이동 방향 각도 계산 (조이스틱을 당긴 방향으로 회전)
             if (Math.abs(moveX) > 0.1 || Math.abs(moveY) > 0.1) {
-                playerAngle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
+                playerAngle = Math.atan2(dy, dx) * (180 / Math.PI);
             }
         }
 
-        // 공격 동작
+        // 공격 버튼
         attackBtn.addEventListener('pointerdown', (e) => {
             e.preventDefault();
-            e.stopPropagation();
-            
             daggerPivot.classList.remove('slash');
             void daggerPivot.offsetWidth;
             daggerPivot.classList.add('slash');
+
+            // 공격 판정 (전방 적 적격)
+            const rad = playerAngle * (Math.PI / 180);
+            const atkX = playerX + Math.cos(rad) * 16;
+            const atkY = playerY + Math.sin(rad) * 16;
+
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                const en = enemies[i];
+                if (Math.hypot(en.x - atkX, en.y - atkY) < 18) {
+                    en.hp--;
+                    if (en.hp <= 0) {
+                        // 적 사망 시 30% 확률로 코인 생성
+                        if (Math.random() < 0.3) spawnDrop('coin', 1, en.x, en.y);
+                        en.el.remove();
+                        enemies.splice(i, 1);
+                    }
+                }
+            }
         });
 
-        // 메인 프레임 루프
+        // 메인 프레임 게임 루프
         function gameLoop() {
-            const speed = 2.2;
-            playerX += moveX * speed;
-            playerY += moveY * speed;
+            const speed = 2.0;
+            let nextX = playerX + moveX * speed;
+            let nextY = playerY + moveY * speed;
 
-            // 방 영역 내 이동 제한 (방 크기 320px - 캐릭터 14px)
-            playerX = Math.max(4, Math.min(302, playerX));
-            playerY = Math.max(4, Math.min(302, playerY));
+            // 벽 충돌 검사
+            let canMoveX = true;
+            let canMoveY = true;
+
+            for (let w of walls) {
+                if (nextX < w.x + w.w && nextX + 12 > w.x && playerY < w.y + w.h && playerY + 12 > w.y) canMoveX = false;
+                if (playerX < w.x + w.w && playerX + 12 > w.x && nextY < w.y + w.h && nextY + 12 > w.y) canMoveY = false;
+            }
+
+            if (canMoveX) playerX = nextX;
+            if (canMoveY) playerY = nextY;
+
+            // 방 외곽 벽 및 문 이동 처리
+            if (playerX < 6) {
+                if (playerY > 138 && playerY < 170) loadRoom('left');
+                else playerX = 6;
+            } else if (playerX > 302) {
+                if (playerY > 138 && playerY < 170) loadRoom('right');
+                else playerX = 302;
+            }
+
+            if (playerY < 6) {
+                if (playerX > 138 && playerX < 170) loadRoom('top');
+                else playerY = 6;
+            } else if (playerY > 302) {
+                if (playerX > 138 && playerX < 170) loadRoom('bottom');
+                else playerY = 302;
+            }
 
             player.style.left = playerX + 'px';
             player.style.top = playerY + 'px';
-            
-            // 바라보는 방향으로 캐릭터 회전 적용
             player.style.transform = `rotate(${playerAngle}deg)`;
+
+            // 상자 충돌 오픈
+            for (let i = chests.length - 1; i >= 0; i--) {
+                const c = chests[i];
+                if (Math.hypot(c.x - playerX, c.y - playerY) < 14) {
+                    openChest(c, i);
+                }
+            }
+
+            // 드롭 아이템 획득
+            for (let i = drops.length - 1; i >= 0; i--) {
+                const d = drops[i];
+                if (Math.hypot(d.x - playerX, d.y - playerY) < 14) {
+                    if (d.type === 'coin') coins += d.amount;
+                    else if (d.type === 'key') keys += d.amount;
+                    else if (d.type === 'potion') currentHp = Math.min(maxHp, currentHp + 25);
+
+                    updateUI();
+                    d.el.remove();
+                    drops.splice(i, 1);
+                }
+            }
+
+            // 적 추적 AI 및 공격
+            enemies.forEach(en => {
+                const edx = playerX - en.x;
+                const edy = playerY - en.y;
+                const edist = Math.hypot(edx, edy);
+
+                if (edist > 0) {
+                    en.x += (edx / edist) * 0.7;
+                    en.y += (edy / edist) * 0.7;
+                    en.el.style.left = en.x + 'px';
+                    en.el.style.top = en.y + 'px';
+                }
+
+                if (edist < 10) {
+                    currentHp -= 0.2;
+                    updateUI();
+                }
+            });
 
             requestAnimationFrame(gameLoop);
         }
 
+        // 초기 시작
+        updateUI();
+        loadRoom('center');
         requestAnimationFrame(gameLoop);
     </script>
 </body>
