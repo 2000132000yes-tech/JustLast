@@ -28,6 +28,16 @@
             overflow: hidden;
         }
 
+        /* 피격 시 화면 테두리 빨간 경고 vignette */
+        #damage-vignette {
+            position: absolute;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none;
+            box-shadow: inset 0 0 80px rgba(239, 68, 68, 0);
+            z-index: 99;
+            transition: box-shadow 0.05s ease-out;
+        }
+
         /* UI 상단 바 */
         #ui-bar {
             width: 320px;
@@ -37,7 +47,6 @@
             gap: 6px;
         }
 
-        /* 체력바 */
         #hp-container {
             width: 100%;
             height: 14px;
@@ -45,17 +54,15 @@
             border: 2px solid #5a1010;
             border-radius: 4px;
             overflow: hidden;
-            position: relative;
         }
 
         #hp-bar {
             width: 100%;
             height: 100%;
             background-color: #dc2626;
-            transition: width 0.2s ease;
+            transition: width 0.15s ease;
         }
 
-        /* 인벤토리/아이콘 정보 바 */
         #status-info {
             display: flex;
             align-items: center;
@@ -70,11 +77,9 @@
             gap: 6px;
         }
 
-        /* --- PURE CSS COMMON ICONS --- */
-        /* 커스텀 코인 아이콘 */
+        /* Pure CSS 아이콘 */
         .icon-coin {
-            width: 12px;
-            height: 12px;
+            width: 12px; height: 12px;
             background-color: #fbbf24;
             border: 1px solid #b45309;
             border-radius: 50%;
@@ -82,67 +87,50 @@
             display: inline-block;
         }
 
-        /* 커스텀 열쇠 아이콘 */
         .icon-key {
-            width: 12px;
-            height: 12px;
+            width: 12px; height: 12px;
             position: relative;
             display: inline-block;
         }
 
         .icon-key::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 5px;
-            height: 5px;
-            border: 1.5px solid #eab308;
-            border-radius: 50%;
+            content: ''; position: absolute; top: 0; left: 0;
+            width: 5px; height: 5px;
+            border: 1.5px solid #eab308; border-radius: 50%;
         }
 
         .icon-key::after {
-            content: '';
-            position: absolute;
-            top: 5px;
-            left: 2px;
-            width: 2px;
-            height: 7px;
+            content: ''; position: absolute; top: 5px; left: 2px;
+            width: 2px; height: 7px;
             background-color: #eab308;
             box-shadow: 2px 2px 0 #eab308;
         }
 
-        /* 커스텀 포션 아이콘 */
         .icon-potion {
-            width: 10px;
-            height: 12px;
+            width: 10px; height: 12px;
             position: relative;
             display: inline-block;
         }
 
         .icon-potion::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 3px;
-            width: 4px;
-            height: 3px;
-            background-color: #94a3b8;
+            content: ''; position: absolute; top: 0; left: 3px;
+            width: 4px; height: 3px; background-color: #94a3b8;
         }
 
         .icon-potion::after {
-            content: '';
-            position: absolute;
-            top: 3px;
-            left: 0;
-            width: 10px;
-            height: 9px;
-            background-color: #ef4444;
-            border-radius: 2px 2px 4px 4px;
+            content: ''; position: absolute; top: 3px; left: 0;
+            width: 10px; height: 9px;
+            background-color: #ef4444; border-radius: 2px 2px 4px 4px;
             border: 1px solid #b91c1c;
         }
 
-        /* 게임 방 메인 */
+        /* 게임 메인 방 */
+        #room-wrapper {
+            position: relative;
+            width: 320px;
+            height: 320px;
+        }
+
         #room {
             width: 320px;
             height: 320px;
@@ -161,7 +149,7 @@
             box-shadow: 0 0 20px rgba(0,0,0,0.9);
         }
 
-        /* 상하좌우 문 */
+        /* 문 및 장애물 */
         .door {
             position: absolute;
             background-color: #b08d57;
@@ -174,7 +162,6 @@
         .door-left { top: 50%; left: 0; transform: translateY(-50%); width: 8px; height: 44px; border-left: none; border-radius: 0 4px 4px 0; }
         .door-right { top: 50%; right: 0; transform: translateY(-50%); width: 8px; height: 44px; border-right: none; border-radius: 4px 0 0 4px; }
 
-        /* 내부 장애물 벽 (방 모양 변형용) */
         .wall {
             position: absolute;
             background-color: #1a1007;
@@ -183,7 +170,7 @@
             z-index: 1;
         }
 
-        /* 플레이어 (크기 12px) */
+        /* 플레이어 */
         #player {
             width: 12px;
             height: 12px;
@@ -198,65 +185,59 @@
             z-index: 10;
         }
 
-        /* 단검 피벗 */
         #dagger-pivot {
             position: absolute;
             top: 6px;
             left: 6px;
-            width: 0;
-            height: 0;
+            width: 0; height: 0;
             transform-origin: 0 0;
         }
 
-        /* 리얼한 게임스타일 단검 디자인 */
         .dagger {
             position: absolute;
-            top: -2px;
-            left: 5px;
-            width: 10px;
-            height: 2px;
+            top: -2px; left: 5px;
+            width: 10px; height: 2px;
             background: linear-gradient(90deg, #94a3b8, #ffffff);
             border-radius: 0 3px 3px 0;
             box-shadow: 0 0 2px rgba(255, 255, 255, 0.8);
         }
 
-        /* 검 가드 & 자루 */
         .dagger::before {
-            content: '';
-            position: absolute;
-            left: -2px;
-            top: -2px;
-            width: 2px;
-            height: 6px;
-            background-color: #d97706;
+            content: ''; position: absolute; left: -2px; top: -2px;
+            width: 2px; height: 6px; background-color: #d97706;
         }
 
         .dagger::after {
-            content: '';
-            position: absolute;
-            left: -5px;
-            top: -0.5px;
-            width: 3px;
-            height: 3px;
-            background-color: #475569;
-            border-radius: 1px;
+            content: ''; position: absolute; left: -5px; top: -0.5px;
+            width: 3px; height: 3px; background-color: #475569; border-radius: 1px;
         }
 
-        /* 공격 휘두르기 애니메이션 */
-        .slash {
-            animation: slash-anim 0.12s ease-out;
-        }
-
+        .slash { animation: slash-anim 0.12s ease-out; }
         @keyframes slash-anim {
             0% { transform: rotate(-60deg); }
             50% { transform: rotate(80deg); }
             100% { transform: rotate(0deg); }
         }
 
-        /* 적 (Enemy) */
+        /* 텔레포트 잔상 */
+        .afterimage {
+            position: absolute;
+            width: 12px; height: 12px;
+            background-color: rgba(99, 102, 241, 0.4);
+            border: 1px solid rgba(129, 140, 248, 0.6);
+            border-radius: 3px;
+            pointer-events: none;
+            z-index: 9;
+            animation: fade-out 0.25s forwards;
+        }
+
+        @keyframes fade-out {
+            to { opacity: 0; transform: scale(1.2); }
+        }
+
+        /* 적 및 체력바 */
         .enemy {
-            width: 12px;
-            height: 12px;
+            width: 12px; height: 12px;
             background-color: #ef4444;
             border: 1px solid #f87171;
             border-radius: 3px;
@@ -265,53 +246,109 @@
             z-index: 5;
         }
 
-        /* 상자 (일반) */
+        .enemy-hp-base {
+            position: absolute; top: -6px; left: -2px;
+            width: 16px; height: 3px;
+            background-color: #450a0a; border-radius: 1px;
+        }
+
+        .enemy-hp-fill {
+            width: 100%; height: 100%;
+            background-color: #ef4444; border-radius: 1px;
+        }
+
+        /* 락온 조준 마크 */
+        #target-marker {
+            position: absolute;
+            width: 18px; height: 18px;
+            border: 2px dashed #facc15;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 12;
+            display: none;
+            animation: spin 3s linear infinite;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* 적 투사체 */
+        .projectile {
+            position: absolute;
+            width: 6px; height: 6px;
+            background-color: #f87171;
+            border-radius: 50%;
+            box-shadow: 0 0 6px #ef4444;
+            z-index: 6;
+        }
+
+        /* 상자 */
         .chest {
-            width: 16px;
-            height: 14px;
+            width: 16px; height: 14px;
             background-color: #854d0e;
             border: 2px solid #a16207;
-            border-radius: 3px;
-            position: absolute;
-            z-index: 4;
+            border-radius: 3px; position: absolute; z-index: 4;
             box-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
-
         .chest::after {
-            content: '';
-            position: absolute;
-            top: 4px;
-            left: 5px;
-            width: 2px;
-            height: 3px;
-            background-color: #fbbf24;
+            content: ''; position: absolute; top: 4px; left: 5px;
+            width: 2px; height: 3px; background-color: #fbbf24;
         }
-
-        /* 황금 상자 */
         .chest.gold {
-            background-color: #eab308;
-            border: 2px solid #fef08a;
+            background-color: #eab308; border: 2px solid #fef08a;
             box-shadow: 0 0 8px rgba(234, 179, 8, 0.8);
         }
+        .chest.gold::after { background-color: #78350f; }
 
-        .chest.gold::after {
-            background-color: #78350f;
-        }
-
-        /* 드롭 아이템 & 튀어오르는 애니메이션 */
+        /* 드롭 아이템 */
         .drop-item {
-            position: absolute;
-            z-index: 8;
+            position: absolute; z-index: 8;
             animation: drop-bounce 0.4s ease-out forwards;
         }
-
         @keyframes drop-bounce {
             0% { transform: translate(0, 0) scale(0.5); opacity: 0; }
             50% { transform: translate(var(--dx), var(--dy)) scale(1.2); opacity: 1; }
             100% { transform: translate(var(--dx), var(--dy)) scale(1); opacity: 1; }
         }
 
-        /* 컨트롤러 영역 (확대된 크기 적용) */
+        /* 데미지 텍스트 */
+        .dmg-text {
+            position: absolute;
+            font-size: 11px;
+            font-weight: bold;
+            color: #ffffff;
+            pointer-events: none;
+            z-index: 20;
+            animation: float-up 0.6s ease-out forwards;
+            text-shadow: 0 0 3px #000;
+        }
+        .dmg-text.crit {
+            font-size: 14px;
+            color: #ff7800;
+            text-shadow: 0 0 6px #ff0000;
+        }
+        .dmg-text.player-taken {
+            color: #f87171;
+        }
+        @keyframes float-up {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-18px) scale(1.1); }
+        }
+
+        /* 파티클 */
+        .particle {
+            position: absolute;
+            width: 4px; height: 4px;
+            background-color: #ef4444;
+            border-radius: 1px;
+            pointer-events: none;
+            z-index: 15;
+            animation: particle-fade 0.4s ease-out forwards;
+        }
+        @keyframes particle-fade {
+            to { opacity: 0; transform: translate(var(--px), var(--py)) scale(0); }
+        }
+
+        /* 컨트롤러 */
         #controls-container {
             width: 320px;
             height: 130px;
@@ -322,10 +359,8 @@
             align-items: center;
         }
 
-        /* 확장된 조이스틱 (110px) */
         #joystick-base {
-            width: 110px;
-            height: 110px;
+            width: 110px; height: 110px;
             background-color: #1f1f1f;
             border: 3px solid #333333;
             border-radius: 50%;
@@ -336,18 +371,15 @@
         }
 
         #joystick-stick {
-            width: 45px;
-            height: 45px;
+            width: 45px; height: 45px;
             background-color: #404040;
             border: 2px solid #525252;
             border-radius: 50%;
             position: absolute;
         }
 
-        /* 확장된 공격 버튼 (85px) */
         #attack-btn {
-            width: 85px;
-            height: 85px;
+            width: 85px; height: 85px;
             background-color: #991b1b;
             color: #fca5a5;
             border: 3px solid #dc2626;
@@ -357,15 +389,13 @@
             cursor: pointer;
             box-shadow: 0 4px 8px rgba(0,0,0,0.5);
         }
-
-        #attack-btn:active {
-            background-color: #7f1d1d;
-        }
+        #attack-btn:active { background-color: #7f1d1d; }
     </style>
 </head>
 <body>
 
-    <!-- UI 상단 바 -->
+    <div id="damage-vignette"></div>
+
     <div id="ui-bar">
         <div id="hp-container">
             <div id="hp-bar"></div>
@@ -382,23 +412,23 @@
         </div>
     </div>
 
-    <!-- 게임 화면 -->
-    <div id="room">
-        <!-- 상하좌우 문 -->
-        <div class="door door-top"></div>
-        <div class="door door-bottom"></div>
-        <div class="door door-left"></div>
-        <div class="door door-right"></div>
+    <div id="room-wrapper">
+        <div id="room">
+            <div class="door door-top"></div>
+            <div class="door door-bottom"></div>
+            <div class="door door-left"></div>
+            <div class="door door-right"></div>
 
-        <!-- 플레이어 -->
-        <div id="player">
-            <div id="dagger-pivot">
-                <div class="dagger"></div>
+            <div id="target-marker"></div>
+
+            <div id="player">
+                <div id="dagger-pivot">
+                    <div class="dagger"></div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- 외부 조작 컨트롤러 -->
     <div id="controls-container">
         <div id="joystick-base">
             <div id="joystick-stick"></div>
@@ -407,9 +437,12 @@
     </div>
 
     <script>
+        const roomWrapper = document.getElementById('room-wrapper');
         const room = document.getElementById('room');
         const player = document.getElementById('player');
         const daggerPivot = document.getElementById('dagger-pivot');
+        const targetMarker = document.getElementById('target-marker');
+        const vignette = document.getElementById('damage-vignette');
         const base = document.getElementById('joystick-base');
         const stick = document.getElementById('joystick-stick');
         const attackBtn = document.getElementById('attack-btn');
@@ -417,135 +450,170 @@
         const coinTxt = document.getElementById('coin-txt');
         const keyTxt = document.getElementById('key-txt');
 
-        // 게임 제어 변수
-        let playerX = 154;
-        let playerY = 154;
-        let moveX = 0;
-        let moveY = 0;
+        // 상태 데이터
+        let playerX = 154, playerY = 154;
+        let moveX = 0, moveY = 0;
         let playerAngle = 0;
 
-        let maxHp = 100;
-        let currentHp = 100;
-        let coins = 0;
-        let keys = 0;
-        let distanceFromStart = 0;
+        let maxHp = 100, currentHp = 100;
+        let coins = 0, keys = 0;
+        let distanceFromStart = 0; // 0이 시작 방
 
         let enemies = [];
+        let projectiles = [];
         let chests = [];
         let drops = [];
         let walls = [];
+        let lockedEnemy = null;
 
         let joystickPointerId = null;
 
-        // --- 방 레이아웃 (모양 5가지 정의) ---
         const roomTemplates = [
-            // 0번: 기본 빈 방
             [],
-            // 1번: 중앙 기둥 4개
-            [
-                {x: 80, y: 80, w: 40, h: 40}, {x: 200, y: 80, w: 40, h: 40},
-                {x: 80, y: 200, w: 40, h: 40}, {x: 200, y: 200, w: 40, h: 40}
-            ],
-            // 2번: 중앙 대형 방벽
+            [{x: 80, y: 80, w: 40, h: 40}, {x: 200, y: 80, w: 40, h: 40}, {x: 80, y: 200, w: 40, h: 40}, {x: 200, y: 200, w: 40, h: 40}],
             [{x: 120, y: 120, w: 80, h: 80}],
-            // 3번: 십자형 구조물
-            [
-                {x: 140, y: 60, w: 40, h: 60}, {x: 140, y: 200, w: 40, h: 60},
-                {x: 60, y: 140, w: 60, h: 40}, {x: 200, y: 140, w: 60, h: 40}
-            ],
-            // 4번: 코너 장애물 4개
-            [
-                {x: 30, y: 30, w: 50, h: 50}, {x: 240, y: 30, w: 50, h: 50},
-                {x: 30, y: 240, w: 50, h: 50}, {x: 240, y: 240, w: 50, h: 50}
-            ]
+            [{x: 140, y: 60, w: 40, h: 60}, {x: 140, y: 200, w: 40, h: 60}, {x: 60, y: 140, w: 60, h: 40}, {x: 200, y: 140, w: 60, h: 40}],
+            [{x: 30, y: 30, w: 50, h: 50}, {x: 240, y: 30, w: 50, h: 50}, {x: 30, y: 240, w: 50, h: 50}, {x: 240, y: 240, w: 50, h: 50}]
         ];
 
-        // 방 초기화 함수
+        // 크리티컬 계산 (40% 확률, 1.5배)
+        function calcDamage(baseDmg) {
+            const isCrit = Math.random() < 0.40;
+            const finalDmg = isCrit ? baseDmg * 1.5 : baseDmg;
+            return { damage: finalDmg, isCrit };
+        }
+
+        // 데미지 텍스트 생성
+        function showDmgText(x, y, amount, isCrit, isPlayerTaken = false) {
+            const el = document.createElement('div');
+            el.className = `dmg-text ${isCrit ? 'crit' : ''} ${isPlayerTaken ? 'player-taken' : ''}`;
+            el.innerText = (isCrit ? 'CRIT ' : '') + Math.round(amount);
+            el.style.left = (x - 10) + 'px';
+            el.style.top = (y - 12) + 'px';
+            room.appendChild(el);
+            setTimeout(() => el.remove(), 600);
+        }
+
+        // 화면 흔들림 효과
+        function triggerShake(intensity = 6) {
+            let count = 0;
+            const interval = setInterval(() => {
+                const rx = (Math.random() - 0.5) * intensity;
+                const ry = (Math.random() - 0.5) * intensity;
+                roomWrapper.style.transform = `translate(${rx}px, ${ry}px)`;
+                count++;
+                if (count > 5) {
+                    clearInterval(interval);
+                    roomWrapper.style.transform = 'translate(0,0)';
+                }
+            }, 25);
+        }
+
+        // 피격 경고 빨간색 비네트
+        function triggerRedVignette() {
+            vignette.style.boxShadow = 'inset 0 0 80px rgba(239, 68, 68, 0.8)';
+            setTimeout(() => {
+                vignette.style.boxShadow = 'inset 0 0 80px rgba(239, 68, 68, 0)';
+            }, 150);
+        }
+
+        // 사망 파티클 생성
+        function spawnDeathParticles(x, y) {
+            for (let i = 0; i < 12; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                const angle = Math.random() * Math.PI * 2;
+                const dist = Math.random() * 25 + 10;
+                p.style.setProperty('--px', Math.cos(angle) * dist + 'px');
+                p.style.setProperty('--py', Math.sin(angle) * dist + 'px');
+                p.style.left = x + 'px';
+                p.style.top = y + 'px';
+                room.appendChild(p);
+                setTimeout(() => p.remove(), 400);
+            }
+        }
+
+        // 플레이어 잔상 생성
+        function createAfterimage(x, y, angle) {
+            const img = document.createElement('div');
+            img.className = 'afterimage';
+            img.style.left = x + 'px';
+            img.style.top = y + 'px';
+            img.style.transform = `rotate(${angle}deg)`;
+            room.appendChild(img);
+            setTimeout(() => img.remove(), 250);
+        }
+
+        // 방 초기화
         function loadRoom(doorType) {
-            // 기존 객체 삭제
             enemies.forEach(e => e.el.remove());
+            projectiles.forEach(p => p.el.remove());
             chests.forEach(c => c.el.remove());
             drops.forEach(d => d.el.remove());
             walls.forEach(w => w.el.remove());
 
-            enemies = [];
-            chests = [];
-            drops = [];
-            walls = [];
+            enemies = []; projectiles = []; chests = []; drops = []; walls = [];
+            lockedEnemy = null;
 
-            distanceFromStart++;
+            if (doorType !== 'center') distanceFromStart++;
 
-            // 플레이어 위치 설정 (문 통과 시 위치 조정)
             if (doorType === 'top') playerY = 280;
             else if (doorType === 'bottom') playerY = 30;
             else if (doorType === 'left') playerX = 280;
             else if (doorType === 'right') playerX = 30;
 
-            // 방 무작위 형태 5개 중 하나 선택
             const templateIdx = Math.floor(Math.random() * roomTemplates.length);
             roomTemplates[templateIdx].forEach(w => {
                 const wallEl = document.createElement('div');
                 wallEl.className = 'wall';
-                wallEl.style.left = w.x + 'px';
-                wallEl.style.top = w.y + 'px';
-                wallEl.style.width = w.w + 'px';
-                wallEl.style.height = w.h + 'px';
+                wallEl.style.left = w.x + 'px'; wallEl.style.top = w.y + 'px';
+                wallEl.style.width = w.w + 'px'; wallEl.style.height = w.h + 'px';
                 room.appendChild(wallEl);
                 walls.push({ x: w.x, y: w.y, w: w.w, h: w.h, el: wallEl });
             });
 
-            // 적/상자 생성 판단 (거리 비례)
-            const hasEnemies = Math.random() > 0.25;
-
-            if (hasEnemies) {
-                // 거리에 비례한 적 스폰 수
-                const minE = Math.min(2 + Math.floor(distanceFromStart * 0.8), 12);
-                const maxE = Math.min(4 + Math.floor(distanceFromStart * 1.5), 25);
-                const count = Math.floor(Math.random() * (maxE - minE + 1)) + minE;
-
-                for (let i = 0; i < count; i++) {
-                    spawnEnemy();
-                }
-            } else {
-                // 적 없을 때: 상자 1~5개 무작위 생성
-                const chestCount = Math.floor(Math.random() * 5) + 1;
-                if (chestCount === 5) {
-                    // 상자 5개일 시 황금상자 생성
-                    spawnChest(true);
+            // 시작 지점(distanceFromStart === 0)에는 적/상자 없음
+            if (distanceFromStart > 0) {
+                const hasEnemies = Math.random() > 0.25;
+                if (hasEnemies) {
+                    const minE = Math.min(2 + Math.floor(distanceFromStart * 0.8), 12);
+                    const maxE = Math.min(4 + Math.floor(distanceFromStart * 1.5), 25);
+                    const count = Math.floor(Math.random() * (maxE - minE + 1)) + minE;
+                    for (let i = 0; i < count; i++) spawnEnemy();
                 } else {
-                    for (let i = 0; i < chestCount; i++) {
-                        spawnChest(false);
-                    }
+                    const chestCount = Math.floor(Math.random() * 5) + 1;
+                    if (chestCount === 5) spawnChest(true);
+                    else for (let i = 0; i < chestCount; i++) spawnChest(false);
                 }
             }
         }
 
-        // 적 생성
         function spawnEnemy() {
             let x, y, collides;
             do {
                 collides = false;
-                x = Math.random() * 260 + 30;
-                y = Math.random() * 260 + 30;
-                // 벽 충돌 검사
+                x = Math.random() * 240 + 40;
+                y = Math.random() * 240 + 40;
                 for (let w of walls) {
-                    if (x < w.x + w.w && x + 12 > w.x && y < w.y + w.h && y + 12 > w.y) {
-                        collides = true;
-                        break;
-                    }
+                    if (x < w.x + w.w && x + 12 > w.x && y < w.y + w.h && y + 12 > w.y) { collides = true; break; }
                 }
             } while (collides);
 
             const el = document.createElement('div');
             el.className = 'enemy';
-            el.style.left = x + 'px';
-            el.style.top = y + 'px';
-            room.appendChild(el);
+            el.style.left = x + 'px'; el.style.top = y + 'px';
 
-            enemies.push({ x, y, hp: 2, el });
+            const hpBase = document.createElement('div');
+            hpBase.className = 'enemy-hp-base';
+            const hpFill = document.createElement('div');
+            hpFill.className = 'enemy-hp-fill';
+            hpBase.appendChild(hpFill);
+            el.appendChild(hpBase);
+
+            room.appendChild(el);
+            enemies.push({ x, y, maxHp: 20, hp: 20, el, hpFill, lastShoot: Date.now() + Math.random()*1000 });
         }
 
-        // 상자 생성
         function spawnChest(isGold) {
             let x, y, collides;
             do {
@@ -553,111 +621,55 @@
                 x = Math.random() * 240 + 40;
                 y = Math.random() * 240 + 40;
                 for (let w of walls) {
-                    if (x < w.x + w.w && x + 16 > w.x && y < w.y + w.h && y + 14 > w.y) {
-                        collides = true;
-                        break;
-                    }
+                    if (x < w.x + w.w && x + 16 > w.x && y < w.y + w.h && y + 14 > w.y) { collides = true; break; }
                 }
             } while (collides);
 
             const el = document.createElement('div');
             el.className = isGold ? 'chest gold' : 'chest';
-            el.style.left = x + 'px';
-            el.style.top = y + 'px';
+            el.style.left = x + 'px'; el.style.top = y + 'px';
             room.appendChild(el);
-
             chests.push({ x, y, isGold, el });
         }
 
-        // 상자 오픈 로직
         function openChest(c, index) {
             if (c.isGold) {
-                if (keys < 1) return; // 황금상자는 열쇠 1개 소비
+                if (keys < 1) return;
                 keys--;
                 updateUI();
-
-                // 황금 상자 보상: 코인 30~150개, 체력포션 1~2개
-                const coinAmount = Math.floor(Math.random() * 121) + 30;
-                spawnDrop('coin', coinAmount, c.x, c.y);
-
-                const potionCount = Math.floor(Math.random() * 2) + 1;
-                for (let i = 0; i < potionCount; i++) {
-                    spawnDrop('potion', 1, c.x, c.y);
-                }
+                spawnDrop('coin', Math.floor(Math.random() * 121) + 30, c.x, c.y);
+                const pCount = Math.floor(Math.random() * 2) + 1;
+                for (let i = 0; i < pCount; i++) spawnDrop('potion', 1, c.x, c.y);
             } else {
-                // 일반 상자 보상: 무조건 코인 1~30개
-                const coinAmount = Math.floor(Math.random() * 30) + 1;
-                spawnDrop('coin', coinAmount, c.x, c.y);
-
-                // 15% 확률로 열쇠 1~3개
-                if (Math.random() < 0.15) {
-                    const keyAmount = Math.floor(Math.random() * 3) + 1;
-                    spawnDrop('key', keyAmount, c.x, c.y);
-                }
-
-                // 40% 확률로 체력 포션
-                if (Math.random() < 0.40) {
-                    spawnDrop('potion', 1, c.x, c.y);
-                }
+                spawnDrop('coin', Math.floor(Math.random() * 30) + 1, c.x, c.y);
+                if (Math.random() < 0.15) spawnDrop('key', Math.floor(Math.random() * 3) + 1, c.x, c.y);
+                if (Math.random() < 0.40) spawnDrop('potion', 1, c.x, c.y);
             }
-
             c.el.remove();
             chests.splice(index, 1);
         }
 
-        // 아이템 드롭 생성 & 애니메이션
         function spawnDrop(type, amount, x, y) {
             const el = document.createElement('div');
-            el.className = 'drop-item';
-            if (type === 'coin') el.classList.add('icon-coin');
-            else if (type === 'key') el.classList.add('icon-key');
-            else if (type === 'potion') el.classList.add('icon-potion');
-
+            el.className = 'drop-item ' + (type === 'coin' ? 'icon-coin' : type === 'key' ? 'icon-key' : 'icon-potion');
             const angle = Math.random() * Math.PI * 2;
             const dist = Math.random() * 20 + 10;
             const dx = Math.cos(angle) * dist + 'px';
             const dy = Math.sin(angle) * dist + 'px';
-
-            el.style.setProperty('--dx', dx);
-            el.style.setProperty('--dy', dy);
-            el.style.left = x + 'px';
-            el.style.top = y + 'px';
-
+            el.style.setProperty('--dx', dx); el.style.setProperty('--dy', dy);
+            el.style.left = x + 'px'; el.style.top = y + 'px';
             room.appendChild(el);
             drops.push({ x: x + parseFloat(dx), y: y + parseFloat(dy), type, amount, el });
         }
 
-        // UI 업데이트
         function updateUI() {
             hpBar.style.width = Math.max(0, (currentHp / maxHp) * 100) + '%';
             coinTxt.innerText = String(coins).padStart(3, '0');
             keyTxt.innerText = String(keys).padStart(3, '0');
         }
 
-        // --- 컨트롤러 지원 (Pointer Events) ---
-        base.addEventListener('pointerdown', (e) => {
-            e.preventDefault();
-            joystickPointerId = e.pointerId;
-            base.setPointerCapture(e.pointerId);
-            updateJoystick(e);
-        });
-
-        base.addEventListener('pointermove', (e) => {
-            if (e.pointerId === joystickPointerId) updateJoystick(e);
-        });
-
-        const resetJoystick = (e) => {
-            if (e.pointerId === joystickPointerId) {
-                joystickPointerId = null;
-                stick.style.transform = 'translate(0px, 0px)';
-                moveX = 0; moveY = 0;
-            }
-        };
-
-        base.addEventListener('pointerup', resetJoystick);
-        base.addEventListener('pointercancel', resetJoystick);
-
-        function updateJoystick(e) {
+        // 조이스틱 포인터 처리 (완벽 수정)
+        function handlePointer(e) {
             const rect = base.getBoundingClientRect();
             const cx = rect.left + rect.width / 2;
             const cy = rect.top + rect.height / 2;
@@ -680,42 +692,72 @@
             }
         }
 
-        // 공격 버튼
+        base.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            joystickPointerId = e.pointerId;
+            base.setPointerCapture(e.pointerId);
+            handlePointer(e);
+        });
+
+        base.addEventListener('pointermove', (e) => {
+            if (e.pointerId === joystickPointerId) handlePointer(e);
+        });
+
+        const releaseJoystick = (e) => {
+            if (e.pointerId === joystickPointerId) {
+                joystickPointerId = null;
+                stick.style.transform = 'translate(0px, 0px)';
+                moveX = 0; moveY = 0;
+            }
+        };
+
+        base.addEventListener('pointerup', releaseJoystick);
+        base.addEventListener('pointercancel', releaseJoystick);
+
+        // 공격 및 텔레포트
         attackBtn.addEventListener('pointerdown', (e) => {
             e.preventDefault();
             daggerPivot.classList.remove('slash');
             void daggerPivot.offsetWidth;
             daggerPivot.classList.add('slash');
 
-            // 공격 판정 (전방 적 적격)
-            const rad = playerAngle * (Math.PI / 180);
-            const atkX = playerX + Math.cos(rad) * 16;
-            const atkY = playerY + Math.sin(rad) * 16;
+            // 락온된 적이 있으면 잔상 남기고 텔레포트
+            if (lockedEnemy) {
+                createAfterimage(playerX, playerY, playerAngle);
+                
+                // 적 방향으로 텔레포트 (적 바로 앞)
+                const angleRad = Math.atan2(lockedEnemy.y - playerY, lockedEnemy.x - playerX);
+                playerX = lockedEnemy.x - Math.cos(angleRad) * 12;
+                playerY = lockedEnemy.y - Math.sin(angleRad) * 12;
+                playerAngle = angleRad * (180 / Math.PI);
 
-            for (let i = enemies.length - 1; i >= 0; i--) {
-                const en = enemies[i];
-                if (Math.hypot(en.x - atkX, en.y - atkY) < 18) {
-                    en.hp--;
-                    if (en.hp <= 0) {
-                        // 적 사망 시 30% 확률로 코인 생성
-                        if (Math.random() < 0.3) spawnDrop('coin', 1, en.x, en.y);
-                        en.el.remove();
-                        enemies.splice(i, 1);
-                    }
+                createAfterimage(playerX, playerY, playerAngle);
+
+                // 공격 데미지 적용
+                const { damage, isCrit } = calcDamage(10);
+                lockedEnemy.hp -= damage;
+                lockedEnemy.hpFill.style.width = Math.max(0, (lockedEnemy.hp / lockedEnemy.maxHp) * 100) + '%';
+                
+                showDmgText(lockedEnemy.x, lockedEnemy.y, damage, isCrit);
+                triggerShake(isCrit ? 10 : 5);
+
+                if (lockedEnemy.hp <= 0) {
+                    spawnDeathParticles(lockedEnemy.x, lockedEnemy.y);
+                    if (Math.random() < 0.3) spawnDrop('coin', 1, lockedEnemy.x, lockedEnemy.y);
+                    lockedEnemy.el.remove();
+                    enemies = enemies.filter(en => en !== lockedEnemy);
+                    lockedEnemy = null;
                 }
             }
         });
 
-        // 메인 프레임 게임 루프
+        // 메인 프레임 루프
         function gameLoop() {
-            const speed = 2.0;
+            const speed = 2.2;
             let nextX = playerX + moveX * speed;
             let nextY = playerY + moveY * speed;
 
-            // 벽 충돌 검사
-            let canMoveX = true;
-            let canMoveY = true;
-
+            let canMoveX = true, canMoveY = true;
             for (let w of walls) {
                 if (nextX < w.x + w.w && nextX + 12 > w.x && playerY < w.y + w.h && playerY + 12 > w.y) canMoveX = false;
                 if (playerX < w.x + w.w && playerX + 12 > w.x && nextY < w.y + w.h && nextY + 12 > w.y) canMoveY = false;
@@ -724,72 +766,100 @@
             if (canMoveX) playerX = nextX;
             if (canMoveY) playerY = nextY;
 
-            // 방 외곽 벽 및 문 이동 처리
-            if (playerX < 6) {
-                if (playerY > 138 && playerY < 170) loadRoom('left');
-                else playerX = 6;
-            } else if (playerX > 302) {
-                if (playerY > 138 && playerY < 170) loadRoom('right');
-                else playerX = 302;
-            }
+            // 문 이동
+            if (playerX < 6) { if (playerY > 138 && playerY < 170) loadRoom('left'); else playerX = 6; }
+            else if (playerX > 302) { if (playerY > 138 && playerY < 170) loadRoom('right'); else playerX = 302; }
 
-            if (playerY < 6) {
-                if (playerX > 138 && playerX < 170) loadRoom('top');
-                else playerY = 6;
-            } else if (playerY > 302) {
-                if (playerX > 138 && playerX < 170) loadRoom('bottom');
-                else playerY = 302;
-            }
+            if (playerY < 6) { if (playerX > 138 && playerX < 170) loadRoom('top'); else playerY = 6; }
+            else if (playerY > 302) { if (playerX > 138 && playerX < 170) loadRoom('bottom'); else playerY = 302; }
 
             player.style.left = playerX + 'px';
             player.style.top = playerY + 'px';
             player.style.transform = `rotate(${playerAngle}deg)`;
 
-            // 상자 충돌 오픈
-            for (let i = chests.length - 1; i >= 0; i--) {
-                const c = chests[i];
-                if (Math.hypot(c.x - playerX, c.y - playerY) < 14) {
-                    openChest(c, i);
+            // 가장 가까운 적 타깃팅 (락온)
+            let minDist = Infinity;
+            lockedEnemy = null;
+            enemies.forEach(en => {
+                const dist = Math.hypot(en.x - playerX, en.y - playerY);
+                if (dist < minDist) {
+                    minDist = dist;
+                    lockedEnemy = en;
+                }
+            });
+
+            if (lockedEnemy) {
+                targetMarker.style.display = 'block';
+                targetMarker.style.left = (lockedEnemy.x - 3) + 'px';
+                targetMarker.style.top = (lockedEnemy.y - 3) + 'px';
+            } else {
+                targetMarker.style.display = 'none';
+            }
+
+            // 적 행동 (제자리 고정 & 초당 1발 발사)
+            const now = Date.now();
+            enemies.forEach(en => {
+                if (now - en.lastShoot >= 1000) {
+                    en.lastShoot = now;
+                    const pAngle = Math.atan2(playerY - en.y, playerX - en.x);
+                    const pEl = document.createElement('div');
+                    pEl.className = 'projectile';
+                    pEl.style.left = en.x + 'px'; pEl.style.top = en.y + 'px';
+                    room.appendChild(pEl);
+                    projectiles.push({ x: en.x, y: en.y, vx: Math.cos(pAngle) * 2.5, vy: Math.sin(pAngle) * 2.5, el: pEl });
+                }
+            });
+
+            // 투사체 이동 및 플레이어 충돌
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                const p = projectiles[i];
+                p.x += p.vx; p.y += p.vy;
+                p.el.style.left = p.x + 'px'; p.el.style.top = p.y + 'px';
+
+                // 벽 충돌 시 제거
+                let hitWall = false;
+                for (let w of walls) {
+                    if (p.x > w.x && p.x < w.x + w.w && p.y > w.y && p.y < w.y + w.h) hitWall = true;
+                }
+
+                // 플레이어 충돌
+                if (Math.hypot(p.x - playerX, p.y - playerY) < 8) {
+                    const { damage, isCrit } = calcDamage(5); // 기본 데미지 5
+                    currentHp -= damage;
+                    updateUI();
+                    triggerRedVignette();
+                    triggerShake(8);
+                    showDmgText(playerX, playerY, damage, isCrit, true);
+
+                    p.el.remove();
+                    projectiles.splice(i, 1);
+                } else if (hitWall || p.x < 0 || p.x > 320 || p.y < 0 || p.y > 320) {
+                    p.el.remove();
+                    projectiles.splice(i, 1);
                 }
             }
 
-            // 드롭 아이템 획득
+            // 상자 오픈
+            for (let i = chests.length - 1; i >= 0; i--) {
+                if (Math.hypot(chests[i].x - playerX, chests[i].y - playerY) < 14) openChest(chests[i], i);
+            }
+
+            // 아이템 습득
             for (let i = drops.length - 1; i >= 0; i--) {
                 const d = drops[i];
                 if (Math.hypot(d.x - playerX, d.y - playerY) < 14) {
                     if (d.type === 'coin') coins += d.amount;
                     else if (d.type === 'key') keys += d.amount;
                     else if (d.type === 'potion') currentHp = Math.min(maxHp, currentHp + 25);
-
                     updateUI();
                     d.el.remove();
                     drops.splice(i, 1);
                 }
             }
 
-            // 적 추적 AI 및 공격
-            enemies.forEach(en => {
-                const edx = playerX - en.x;
-                const edy = playerY - en.y;
-                const edist = Math.hypot(edx, edy);
-
-                if (edist > 0) {
-                    en.x += (edx / edist) * 0.7;
-                    en.y += (edy / edist) * 0.7;
-                    en.el.style.left = en.x + 'px';
-                    en.el.style.top = en.y + 'px';
-                }
-
-                if (edist < 10) {
-                    currentHp -= 0.2;
-                    updateUI();
-                }
-            });
-
             requestAnimationFrame(gameLoop);
         }
 
-        // 초기 시작
         updateUI();
         loadRoom('center');
         requestAnimationFrame(gameLoop);
